@@ -17,7 +17,7 @@ import { applyPose, track } from '../src/models/rig.js';
 window.track = track;
 const q = new URLSearchParams(location.search);
 const id = q.get('c') || 'dullahan';
-const refs = id === 'dullahan' ? [3, 4, 5, 6] : [7, 9, 10, 8];
+const refs = { dullahan: [3, 4, 5, 6], illumine: [7, 9, 10, 8], dragon: [11, 14, 13, 12] }[id];
 document.getElementById('refs').innerHTML = refs.map((n) => `<img src="refs/${n}.jpg">`).join('');
 document.getElementById('lbl').textContent = id + ' pose=' + (q.get('pose') || 'idle');
 const canvas = document.getElementById('c');
@@ -41,7 +41,7 @@ const models = yaws.map((y) => {
   if (m.shadow) scene.add(m.shadow);
   return m;
 });
-const hgt = +(q.get('h') || (id === 'dullahan' ? 2.35 : 2.1));
+const hgt = +(q.get('h') || ({ dullahan: 2.35, illumine: 2.1, dragon: 2.6 }[id]));
 const fy = q.get('fy') ? +q.get('fy') : null;
 const cam = new THREE.PerspectiveCamera(20, (W / 4) / H, 0.1, 50);
 let t = 0;

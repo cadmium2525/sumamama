@@ -118,6 +118,10 @@ class AudioEngine {
     this.noise(1.2, { vol: 0.5, freq: 1800, type: 'lowpass', slide: 80 });
     this.tone(60, 1.0, { type: 'sine', vol: 0.6, slide: 25 });
   }
+  fire() {
+    this.noise(0.45, { vol: 0.22, freq: 700, type: 'lowpass', slide: 250 });
+    this.noise(0.3, { vol: 0.1, freq: 2600, q: 0.6, slide: 900 });
+  }
   fsReady() {
     [660, 880, 1100, 1320, 1760].forEach((f, i) => this.tone(f, 0.3, { type: 'triangle', vol: 0.1, delay: i * 0.06 }));
     this.noise(0.6, { vol: 0.2, freq: 5000, q: 2, slide: 1500 });

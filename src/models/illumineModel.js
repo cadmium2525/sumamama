@@ -186,6 +186,47 @@ export function buildIllumine(variant = 0) {
     trails[R ? 'footR' : 'footL'] = [a, b];
   }
 
+  // ---------- 漆黒の弓（通常必殺ワザ中だけ左手に現れる） ----------
+  const bow = new THREE.Group(); bow.userData.keep = true;
+  bow.visible = false;
+  j.foreL.add(bow);
+  bow.position.set(0, -0.36, 0);
+  const bowMat = gloss(0x0a0510, { rough: 0.2, metal: 0.6, env: 1.2, emissive: new THREE.Color(0x1a0630) });
+  const bowGlow = basic(P.glow.c2, 1.4);
+  const limb = [];
+  for (let i = 0; i <= 16; i++) {
+    const t = i / 16 * 2 - 1; // -1..1（下端→上端）
+    const z = t * 0.52;
+    const y = -0.13 * (1 - t * t) + 0.05 * Math.pow(Math.abs(t), 6); // 前へ弓なり、先端は反り返る
+    limb.push(new THREE.Vector3(0, y, z));
+  }
+  bow.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(limb), 40, 0.02, 6), bowMat));
+  bow.add(place(mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.14, 8), bowMat), new THREE.Group(), 0, -0.13, 0, Math.PI / 2, 0, 0));
+  for (const zz of [-0.52, 0.52]) {
+    const tip = mesh(new THREE.ConeGeometry(0.028, 0.12, 6), bowGlow);
+    tip.position.set(0, 0.05, zz + Math.sign(zz) * 0.05); tip.rotation.x = Math.sign(zz) * Math.PI / 2;
+    bow.add(tip);
+  }
+  bow.add(place(mesh(new THREE.OctahedronGeometry(0.035, 0), bowGlow), new THREE.Group(), 0, -0.15, 0));
+  // 弦（引き具合で形が変わる）と、つがえた矢
+  const strPos = new Float32Array(9);
+  const strGeo = new THREE.BufferGeometry();
+  strGeo.setAttribute('position', new THREE.BufferAttribute(strPos, 3));
+  const string = new THREE.Line(strGeo, new THREE.LineBasicMaterial({ color: new THREE.Color(P.glow.line).multiplyScalar(1.3) }));
+  string.frustumCulled = false;
+  bow.add(string);
+  const nocked = new THREE.Group();
+  nocked.add(place(mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.6, 5), basic(0x14081c)), new THREE.Group(), 0, -0.3, 0));
+  nocked.add(place(mesh(new THREE.ConeGeometry(0.04, 0.12, 6), bowGlow), new THREE.Group(), 0, -0.62, 0, Math.PI, 0, 0));
+  bow.add(nocked);
+  const setBowDraw = (d) => {
+    const ny = 0.05 + d * 0.32;
+    strPos.set([0, 0.05, -0.52, 0, ny, 0, 0, 0.05, 0.52]);
+    strGeo.attributes.position.needsUpdate = true;
+    nocked.position.y = ny;
+  };
+  setBowDraw(0);
+
   mergeStatic(root);
 
   // ---------- 虹色のリボン（ワールド空間でなびく） ----------
@@ -249,6 +290,11 @@ export function buildIllumine(variant = 0) {
         }, 0.84);
       }
       wispGroup.visible = root.visible;
+    },
+    setBow(on, draw = 0, arrow = true) {
+      bow.visible = on;
+      nocked.visible = on && arrow;
+      setBowDraw(draw);
     },
     setFlash(color, a) {
       flashMats.forEach((m, i) => {

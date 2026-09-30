@@ -106,11 +106,13 @@ export class CpuController {
     this.ledgeWait = -1;
     if (st === 'attack' || st === 'airdodge' || st === 'roll' || st === 'spotdodge' || st === 'ledgeclimb') {
       // 技中の軽い操作（空中なら崖側へドリフト）
-      if (!me.grounded && this.offstage()) this.sx = -sign(me.x);
+      // イルミネのワープは方向入力が決まるまで舵を取らない
+      const warping = me.def.id === 'illumine' && me.moveName === 'upb' && me.mf <= 7;
+      if (!me.grounded && this.offstage() && !warping) this.steerToLedge();
       return;
     }
     if (!me.grounded && this.offstage()) return this.recover();
-    if (st === 'helpless') { this.sx = -sign(me.x) * (Math.abs(me.x) > 6 ? 1 : 0.3); return; }
+    if (st === 'helpless') { if (this.offstage()) this.steerToLedge(); else this.sx = 0; return; }
 
     // シールド中は保持
     if (st === 'shield' && this.holding('shield')) {
@@ -168,6 +170,17 @@ export class CpuController {
     this.edgeSafety();
     this.busy = 3;
     return true;
+  }
+
+  // 崖の少し外側を目指す（ステージの裏側へ潜り込まないように）
+  steerToLedge() {
+    const me = this.f;
+    const side = sign(me.x) || 1;
+    const below = me.y < -0.3;
+    const tx = below ? side * (STAGE.main.half + 0.45) : side * (STAGE.main.half - 1);
+    const dx = tx - me.x;
+    this.sx = Math.abs(dx) < 0.15 ? 0 : Math.max(-1, Math.min(1, dx * 2));
+    this.sy = 0;
   }
 
   offstage() {
@@ -262,6 +275,13 @@ export class CpuController {
       me.facing === dir ? (this.sx = 0) : (this.sx = dir * 0.3);
       this.press('special', chance(0.4) ? randi(10, 50) : 1);
       this.busy = 30;
+      return;
+    }
+    // ドラゴン: 中距離で火炎ブレスを吐き続ける
+    if (me.def.id === 'dragon' && adx > 1.2 && adx < 3.4 && Math.abs(dy) < 1 && chance(0.22)) {
+      this.sx = me.facing === dir ? 0 : dir * 0.3; this.sy = 0;
+      this.press('special', randi(15, 45));
+      this.busy = 40;
       return;
     }
     if (!noc && adx > 3.2 && adx < 6.5 && chance(0.08) && Math.abs(dy) < 1) {

@@ -21,8 +21,39 @@ class Projectile {
     this.hitIds = new Set();
     this.dead = false;
     this.age = 0;
+    if (o.kind === 'arrow') {
+      // 漆黒の矢: 黒い矢柄＋紫に光る矢じり
+      const g = new THREE.Group();
+      const len = 0.75 + o.r;
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, len, 6), new THREE.MeshBasicMaterial({ color: 0x14081c }));
+      shaft.rotation.z = Math.PI / 2;
+      const head = new THREE.Mesh(new THREE.ConeGeometry(0.06 + o.r * 0.12, 0.22, 6), new THREE.MeshBasicMaterial({ color: new THREE.Color(o.color).multiplyScalar(1.5) }));
+      head.rotation.z = -Math.PI / 2; head.position.x = len / 2 + 0.08;
+      const fl = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.16, 3), new THREE.MeshBasicMaterial({ color: 0x2a1040 }));
+      fl.rotation.z = -Math.PI / 2; fl.position.x = -len / 2 + 0.05; fl.scale.set(1, 1, 0.2);
+      const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTexture(), color: o.color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      glow.scale.setScalar(0.5 + o.r * 2); glow.position.x = len / 2;
+      g.add(shaft, head, fl, glow);
+      g.position.set(o.x, o.y, 0.25);
+      g.rotation.z = Math.atan2(o.vy, o.vx);
+      this.mesh = g;
+      battle.scene.add(g);
+      return;
+    }
+    if (o.kind === 'flame') {
+      // 火炎ブレスの炎（広がりながら減速して消える）
+      const g = new THREE.Group();
+      const outer = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTexture(), color: 0xff4a0a, transparent: true, depthWrite: false }));
+      const inner = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTexture(), color: new THREE.Color(0xffc030), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      g.add(outer, inner);
+      g.position.set(o.x, o.y, 0.3);
+      this.outer = outer; this.inner = inner; this.maxLife = o.life;
+      this.mesh = g;
+      battle.scene.add(g);
+      return;
+    }
     if (o.kind === 'fswave') {
-      this.mesh = makeSolarWave();
+      this.mesh = makeSolarWave(o.color, o.core);
       this.mesh.position.set(o.x, o.y, 0.3);
       if (o.vx < 0) this.mesh.rotation.y = Math.PI;
       battle.scene.add(this.mesh);
@@ -46,8 +77,20 @@ class Projectile {
     this.px = this.x; this.py = this.y;
     this.x += this.vx; this.y += this.vy;
     this.life--;
+    if (this.kind === 'flame') {
+      this.vx *= 0.94; this.vy *= 0.94;
+      this.r = Math.min(this.rMax || 0.7, this.r + 0.03);
+      if (this.age % 3 === 0) this.b.effects.spawn({ x: this.x, y: this.y + 0.1, z: 0.2, vy: 0.015, life: 18, size: this.r * 0.8, size1: 0.1, color: 0x3a2a2a, additive: false, opacity: 0.35 });
+      if (this.life <= 0 || insideSolid(this.x, this.y)) this.kill(false);
+      return;
+    }
+    if (this.kind === 'arrow') {
+      if (this.age % 2 === 0) this.b.effects.spawn({ x: this.x - this.vx * 1.5, y: this.y, z: 0.2, life: 12, size: 0.25 + this.r, size1: 0.02, color: this.color });
+      if (this.life <= 0 || insideSolid(this.x, this.y) || Math.abs(this.x) > 30) this.kill(true);
+      return;
+    }
     if (this.kind === 'fswave') {
-      for (let i = 0; i < 3; i++) this.b.effects.sparkle(this.x - this.vx * 2, this.y + rand(-1.8, 1.8), i ? 0xffd060 : 0xffffff, 1, 0.3);
+      for (let i = 0; i < 3; i++) this.b.effects.sparkle(this.x - this.vx * 2, this.y + rand(-1.8, 1.8), i ? (this.color || 0xffd060) : 0xffffff, 1, 0.3);
       if (this.life <= 0 || Math.abs(this.x) > 26) this.kill(false);
       return;
     }
@@ -65,6 +108,16 @@ class Projectile {
     const x = this.px === undefined ? this.x : this.px + (this.x - this.px) * alpha;
     const y = this.py === undefined ? this.y : this.py + (this.y - this.py) * alpha;
     this.mesh.position.set(x, y, this.kind === 'fswave' ? 0.3 : 0.2);
+    if (this.kind === 'flame') {
+      const t = this.age / this.maxLife;
+      this.outer.scale.setScalar(this.r * 2.6);
+      this.inner.scale.setScalar(this.r * 1.3 * (1 - t * 0.6));
+      this.outer.material.opacity = 0.9 * Math.max(0, 1 - t * t);
+      this.inner.material.opacity = 0.8 * Math.max(0, 1 - t);
+      this.outer.material.color.setRGB(1, 0.2 + 0.35 * (1 - t), 0.03);
+      return;
+    }
+    if (this.kind === 'arrow') return;
     if (this.shell) this.shell.scale.setScalar(this.r * (1 + Math.sin(this.age * 0.6) * 0.08));
     else this.mesh.scale.set(1, 1 + Math.sin(this.age * 0.5) * 0.05, 1);
   }

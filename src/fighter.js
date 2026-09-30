@@ -1238,14 +1238,14 @@ export class Fighter {
     if (this.flashT > 0) { fa = 0.7 * (this.flashT / 8); fc.set(0xffffff); }
     else if (this.fsReady) { fa = 0.3 + 0.2 * Math.sin(this.animT * 0.3); fc.setHSL((this.animT * 0.01) % 1, 1, 0.6); }
     else if (this.state === 'attack' && this.move && this.move.fs) { fa = 0.25; fc.set(this.def.color); }
-    else if (this.charging) { fa = 0.25 + 0.25 * Math.sin(this.animT * 0.6); fc.set(0xffffaa); }
+    else if (this.charging && !(this.move && this.move.noChargeFlash)) { fa = 0.25 + 0.25 * Math.sin(this.animT * 0.6); fc.set(0xffffaa); }
     else if (this.invuln > 0 && this.state !== 'respawn' && this.state !== 'ledge') { fa = (Math.floor(this.animT / 3) % 2) * 0.5; fc.set(0xffffff); }
     else if (this.state === 'respawn') { fa = 0.25 + 0.15 * Math.sin(this.animT * 0.2); fc.copy(this.color); }
     else if (this.state === 'helpless') { fa = 0.35; fc.set(0x000000); }
     else if (this.inWindow('counter') || this.inWindow('reflect')) { fa = 0.35; fc.set(0x9fe8ff); }
     else if (this.inWindow('armor')) { fa = 0.3; fc.set(0xffd060); }
     m.setFlash(fc, fa);
-    m.update(dt, { vx: this.vx + this.kx, vy: this.vy + this.ky });
+    m.update(dt, { vx: this.vx + this.kx, vy: this.vy + this.ky, air: !this.grounded });
     // 軌跡
     const mv = this.move;
     const tr = mv && mv.trail && this.state === 'attack' && inWin(this.mf, mv.trailF || [0, 999]) && !this.charging;

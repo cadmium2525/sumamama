@@ -121,25 +121,37 @@ const moves = {
   },
   // ---------- 必殺ワザ ----------
   neutralb: {
-    // アンブラオーブ: ためて撃つ闇の球
+    // シャドウアロー: 漆黒の弓を引き絞って放つ（ため撃ち可）
     total: 34, charge: { f: 8, max: 70 }, fall: 0.5, landContinue: true,
+    onStart(ft) { ft.model.setBow(true, 0.15); },
     onCharge(ft) {
       const c = ft.charge / 70;
-      const p = ft.model.orbPoint.getWorldPosition(ft.battle.tmpV);
-      ft.battle.effects.spawn({ x: p.x, y: p.y, z: p.z, life: 2, size: 0.35 + c * 0.7, color: 0xd070ff });
-      ft.battle.effects.spawn({ x: p.x, y: p.y, z: p.z + 0.01, life: 2, size: 0.15 + c * 0.35, color: 0xffffff });
+      ft.model.setBow(true, 0.35 + c * 0.65);
+      if (ft.charge % 5 === 0) {
+        const p = ft.model.orbPoint.getWorldPosition(ft.battle.tmpV);
+        ft.battle.effects.sparkle(p.x, p.y, c > 0.95 ? 0xffffff : 0xb45cff, 1, 0.25);
+      }
     },
     onFrame(ft, f) {
+      if (f < 8) ft.model.setBow(true, 0.15 + f * 0.03);
       if (f === 10) {
         const c = ft.charge / 70;
         ft.battle.spawnProjectile(ft, {
-          x: ft.x + ft.facing * 0.75, y: ft.y + 1.05, vx: ft.facing * (0.2 + 0.08 * c), vy: 0,
-          r: 0.28 + 0.3 * c, dmg: 5 + 11 * c, ang: 40, bkb: 22 + 28 * c, kbg: 62, life: 80, color: 0xc060ff, core: 0xffd0ff, kind: 'orb',
+          x: ft.x + ft.facing * 0.8, y: ft.y + 1.12, vx: ft.facing * (0.32 + 0.16 * c), vy: 0,
+          r: 0.16 + 0.14 * c, dmg: 5 + 11 * c, ang: 38, bkb: 22 + 28 * c, kbg: 62, life: 60, color: 0xb45cff, kind: 'arrow',
         });
+        ft.model.setBow(true, 0, false);
+        audio.whoosh(0.4 + c * 0.6);
         audio.orb();
       }
+      if (f === 28) ft.model.setBow(false);
     },
-    anim: [[0, NI], [6, { armR: [-1.2, 0, 0.1], foreR: [-0.5, 0, 0], armL: [-1.2, 0, -0.1], foreL: [-0.5, 0, 0], torso: [0.15, 0.1, 0], legR: [-0.3, 0, -0.1], legL: [0.3, 0, 0.1], shinL: [0.3, 0, 0] }], [10, { armR: [-1.6, 0, -0.15], foreR: [0, 0, 0], armL: [-1.6, 0, 0.15], foreL: [0, 0, 0], torso: [0.25, 0, 0], bz: 0.1, legR: [-0.3, 0, -0.1], legL: [0.3, 0, 0.1], flare: 0.3 }], [20, { armR: [-1.5, 0, -0.15], armL: [-1.5, 0, 0.15], torso: [0.2, 0, 0] }], [34, NI]],
+    onEnd(ft) { ft.model.setBow(false); },
+    anim: [[0, NI],
+      [6, { armL: [-1.5, 0, 0.05], foreL: [0, 0, 0], armR: [-1.45, 0, 0.3], foreR: [-1.5, 0, 0], torso: [0.08, -0.55, 0], head: [0, 0.4, 0], legR: [-0.3, 0, -0.1], legL: [0.3, 0, 0.1], shinL: [0.3, 0, 0] }],
+      [9, { armL: [-1.5, 0, 0.05], foreL: [0, 0, 0], armR: [-1.4, 0, 0.45], foreR: [-2.1, 0, 0], torso: [0.08, -0.6, 0], head: [0, 0.45, 0], legR: [-0.3, 0, -0.1], legL: [0.3, 0, 0.1], shinL: [0.3, 0, 0] }],
+      [11, { armL: [-1.55, 0, 0.05], foreL: [0, 0, 0], armR: [-1.1, 0, -0.7], foreR: [-0.3, 0, 0], torso: [0.12, -0.5, 0], head: [0, 0.4, 0], legR: [-0.3, 0, -0.1], legL: [0.3, 0, 0.1], flare: 0.3 }],
+      [22, { armL: [-1.45, 0, 0.1], armR: [-0.9, 0, -0.7], torso: [0.1, -0.4, 0] }], [34, NI]],
   },
   sideb: {
     // ウィスプダッシュ: 高速の突進
@@ -300,7 +312,7 @@ export const ILLUMINE = {
   color: 0xc56bff,
   css: '#c56bff',
   desc: '光る裏地の衣をまとい、空中ジャンプ2回とワープで自在に舞う軽量級の魔法ファイター。',
-  specials: ['アンブラオーブ（ため撃ち）', 'ウィスプダッシュ（突進）', 'ムーンワープ（瞬間移動）', 'エクリプスヴェール（反射）'],
+  specials: ['シャドウアロー（漆黒の弓・ため撃ち）', 'ウィスプダッシュ（突進）', 'ムーンワープ（瞬間移動）', 'エクリプスヴェール（反射）'],
   stats: {
     weight: 82, height: 1.75, radius: 0.36,
     walkSpeed: 0.085, dashSpeed: 0.175, dashFrames: 10, runSpeed: 0.16, traction: 0.009,

@@ -138,21 +138,21 @@ export class EclipseSphere {
 }
 
 // デュラハンの切りふだ: 巨大な黄金の剣閃
-export function makeSolarWave() {
+export function makeSolarWave(color = 0xffd460, core = 0xffffff) {
   const g = new THREE.Group();
-  const arcMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffd460).multiplyScalar(1.6), transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+  const arcMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(1.6), transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
   const arc = new THREE.Mesh(new THREE.TorusGeometry(1.9, 0.32, 10, 40, Math.PI), arcMat);
   arc.rotation.z = -Math.PI / 2;
-  const inner = new THREE.Mesh(new THREE.TorusGeometry(1.9, 0.12, 8, 40, Math.PI), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const inner = new THREE.Mesh(new THREE.TorusGeometry(1.9, 0.12, 8, 40, Math.PI), new THREE.MeshBasicMaterial({ color: core, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
   inner.rotation.z = -Math.PI / 2;
-  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTexture(), color: 0xffc040, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTexture(), color, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
   glow.scale.set(6, 6, 1);
   g.add(glow, arc, inner);
   return g;
 }
 
 export function fsLabel(def) {
-  return def.id === 'illumine' ? 'エターナル・エクリプス' : 'ソーラー・ジャッジメント';
+  return { illumine: 'エターナル・エクリプス', dullahan: 'ソーラー・ジャッジメント', dragon: 'ドラゴン・インフェルノ' }[def.id] || '最後の切りふだ';
 }
 
 export { sign };
