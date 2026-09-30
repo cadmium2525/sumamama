@@ -1,0 +1,72 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>model compare</title>
+<style>
+html,body{margin:0;background:#e9e3b8;font-family:sans-serif}
+.row{display:flex;gap:0;justify-content:space-around;align-items:flex-end;height:46vh;background:linear-gradient(180deg,#dfe7c4,#e8d9a4 40%,#efe6a8)}
+.row img{height:44vh;object-fit:contain;flex:1;min-width:0}
+canvas{display:block;width:100vw;height:52vh}
+#lbl{position:fixed;left:6px;top:4px;font-size:12px;color:#553}
+</style>
+<script type="importmap">{"imports":{"three":"../node_modules/three/build/three.module.js","three/addons/":"../node_modules/three/examples/jsm/"}}</script>
+</head><body><div id="lbl"></div><div class="row" id="refs"></div><canvas id="c"></canvas>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { CHARS } from '../src/chars/index.js';
+import { applyPose, track } from '../src/models/rig.js';
+window.track = track;
+const q = new URLSearchParams(location.search);
+const id = q.get('c') || 'dullahan';
+const refs = id === 'dullahan' ? [3, 4, 5, 6] : [7, 9, 10, 8];
+document.getElementById('refs').innerHTML = refs.map((n) => `<img src="refs/${n}.jpg">`).join('');
+document.getElementById('lbl').textContent = id + ' pose=' + (q.get('pose') || 'idle');
+const canvas = document.getElementById('c');
+const r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+r.setPixelRatio(Math.min(2, devicePixelRatio));
+r.toneMapping = THREE.NeutralToneMapping;
+const W = innerWidth, H = innerHeight * 0.52;
+r.setSize(W, H, false);
+const scene = new THREE.Scene();
+const pm = new THREE.PMREMGenerator(r);
+scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xfff8e8, 0x807050, 1.2));
+const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(-3, 5, 6); scene.add(key);
+const fill = new THREE.DirectionalLight(0xfff0d0, 0.6); fill.position.set(4, 2, 3); scene.add(fill);
+const def = CHARS[id];
+const yaws = [0, Math.PI / 2, Math.PI, -Math.PI / 2];
+const models = yaws.map((y) => {
+  const m = def.buildModel(+(q.get('v') || 0));
+  m.root.rotation.y = y;
+  scene.add(m.root, ...m.worldObjects);
+  if (m.shadow) scene.add(m.shadow);
+  return m;
+});
+const hgt = +(q.get('h') || (id === 'dullahan' ? 2.35 : 2.1));
+const fy = q.get('fy') ? +q.get('fy') : null;
+const cam = new THREE.PerspectiveCamera(20, (W / 4) / H, 0.1, 50);
+let t = 0;
+window.models = models; window.def = def; window.applyPose = applyPose;
+function frame() {
+  t++;
+  let pose = q.get('pose') === 'rest' ? {} : (def.anims[q.get('pose') || 'idle'] || def.anims.idle)(t);
+  if (window.override) pose = { ...pose, ...window.override };
+  if (window.move) { const mv = def.moves[window.move]; pose = window.track(mv.anim, window.moveF || 0); }
+  r.setScissorTest(true);
+  models.forEach((m, i) => {
+    applyPose(m.rig, pose, 1);
+    scene.children.forEach((c) => {});
+    // 他の3体を隠す
+    models.forEach((o, k) => { o.root.visible = k === i; o.worldObjects.forEach((w) => (w.visible = k === i)); if (o.shadow) o.shadow.visible = k === i; });
+    m.update(1 / 60, { vx: 0, vy: 0 });
+    if (m.shadow) m.shadow.position.set(0, 0.005, 0);
+    const vw = W / 4;
+    r.setViewport(i * vw, 0, vw, H); r.setScissor(i * vw, 0, vw, H);
+    const d = (hgt * 0.55) / Math.tan((10 * Math.PI) / 180);
+    const cy = fy !== null ? fy : hgt * 0.47;
+    cam.position.set(0, cy + hgt * 0.03, d); cam.lookAt(0, cy, 0);
+    r.render(scene, cam);
+  });
+  requestAnimationFrame(frame);
+}
+frame();
+</script></body></html>
