@@ -2,6 +2,10 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<script>
+// GitHub Pages でリポジトリ直下が公開された場合は、ビルド済みの docs/ へ移動する
+if (/\.github\.io$/.test(location.hostname) && !/\/docs\//.test(location.pathname)) location.replace(location.pathname.replace(/\/?(index\.html)?$/, '/') + 'docs/' + location.search);
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#1a0d2e">
 <meta name="apple-mobile-web-app-capable" content="yes">

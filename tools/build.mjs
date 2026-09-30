@@ -32,6 +32,8 @@ writeFileSync(`${OUT}/style.css`, css);
 // 3) index.html: importmap を外し、バンドルを読み込む
 let html = readFileSync('index.html', 'utf8');
 html = html.replace(/<script type="importmap">[\s\S]*?<\/script>\s*/, '');
+// ルート公開用のリダイレクトは公開版には不要
+html = html.replace(/<script>\s*\/\/ GitHub Pages[\s\S]*?<\/script>\s*/, '');
 html = html.replace('<link rel="stylesheet" href="style.css">', `<link rel="stylesheet" href="style.css?v=${hash}">`);
 html = html.replace('<script type="module" src="src/main.js"></script>', `<script type="module" src="app.js?v=${hash}"></script>`);
 writeFileSync(`${OUT}/index.html`, html);
