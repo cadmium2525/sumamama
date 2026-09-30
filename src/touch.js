@@ -28,8 +28,10 @@ export class TouchControls {
     this.origin = { x: 0, y: 0 };
     this.radius = 56;
     const zone = el.querySelector('#stickZone');
+    this.zone = zone;
     zone.addEventListener('pointerdown', (e) => {
-      if (this.stickId !== null) return;
+      // 前の指の入力が残っていても、新しく触れた指で必ず操作し直す
+      if (this.stickId !== null) this.releaseStick();
       this.stickId = e.pointerId;
       try { zone.setPointerCapture(e.pointerId); } catch (err) { /* 合成イベント等 */ }
       this.origin = { x: e.clientX, y: e.clientY };
@@ -39,20 +41,29 @@ export class TouchControls {
       this.moveStick(e.clientX, e.clientY);
       e.preventDefault();
     });
-    zone.addEventListener('pointermove', (e) => { if (e.pointerId === this.stickId) this.moveStick(e.clientX, e.clientY); });
-    const endStick = (e) => {
-      if (e.pointerId !== this.stickId) return;
-      this.stickId = null;
-      this.state.x = 0; this.state.y = 0;
-      this.base.classList.remove('on');
-      this.knob.style.transform = 'translate(-50%,-50%)';
+    // 指がどこへ移動しても追従できるよう window で受ける
+    window.addEventListener('pointermove', (e) => { if (e.pointerId === this.stickId) this.moveStick(e.clientX, e.clientY); }, true);
+    const endPointer = (e) => {
+      if (e.pointerId === this.stickId) this.releaseStick();
+      this.releaseButtonPointer(e.pointerId);
     };
-    zone.addEventListener('pointerup', endStick);
-    zone.addEventListener('pointercancel', endStick);
+    // 指を離した場所がスティック領域の外でも確実に解除する
+    for (const t of ['pointerup', 'pointercancel']) window.addEventListener(t, endPointer, true);
+    zone.addEventListener('lostpointercapture', (e) => { if (e.pointerId === this.stickId) this.releaseStick(); });
+    // タッチの終了時に「画面に残っている指」と入力を突き合わせる（取りこぼし対策）
+    const reconcile = (e) => this.reconcile(e.touches);
+    window.addEventListener('touchend', reconcile, true);
+    window.addEventListener('touchcancel', reconcile, true);
+    // アプリ切替・画面非表示では全入力を解除
+    document.addEventListener('visibilitychange', () => { if (document.hidden) this.reset(); });
+    window.addEventListener('blur', () => this.reset());
+    window.addEventListener('pagehide', () => this.reset());
     // ボタン（複数同時押し可）
     this.btnPointers = new Map();
+    this.btnEls = {};
     for (const b of el.querySelectorAll('.tb')) {
       const key = b.dataset.b;
+      this.btnEls[key] = b;
       b.addEventListener('pointerdown', (e) => {
         try { b.setPointerCapture(e.pointerId); } catch (err) { /* 合成イベント等 */ }
         this.btnPointers.set(e.pointerId, key);
@@ -61,16 +72,42 @@ export class TouchControls {
         if (navigator.vibrate) navigator.vibrate(8);
         e.preventDefault();
       });
-      const up = (e) => {
-        if (!this.btnPointers.has(e.pointerId)) return;
-        this.btnPointers.delete(e.pointerId);
-        if (![...this.btnPointers.values()].includes(key)) { this.state[key] = false; b.classList.remove('on'); }
-      };
-      b.addEventListener('pointerup', up);
-      b.addEventListener('pointercancel', up);
+      b.addEventListener('lostpointercapture', (e) => this.releaseButtonPointer(e.pointerId));
     }
     el.querySelector('#tpause').addEventListener('pointerdown', (e) => { e.preventDefault(); onPause(); });
     el.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
+  releaseStick() {
+    this.stickId = null;
+    this.state.x = 0; this.state.y = 0;
+    this.base.classList.remove('on');
+    this.knob.style.transform = 'translate(-50%,-50%)';
+  }
+
+  releaseButtonPointer(id) {
+    const key = this.btnPointers.get(id);
+    if (!key) return;
+    this.btnPointers.delete(id);
+    if (![...this.btnPointers.values()].includes(key)) { this.state[key] = false; this.btnEls[key].classList.remove('on'); }
+  }
+
+  // 画面に残っている指の位置と、押されている入力を突き合わせる
+  reconcile(touches) {
+    if (!touches || touches.length === 0) { this.reset(); return; }
+    const inside = (el) => {
+      const r = el.getBoundingClientRect();
+      for (const t of touches) if (t.clientX >= r.left - 30 && t.clientX <= r.right + 30 && t.clientY >= r.top - 30 && t.clientY <= r.bottom + 30) return true;
+      return false;
+    };
+    if (this.stickId !== null) {
+      // スティックの指は左側のどこかにいるはず。左側に指が1本もなければ解除
+      const zr = this.zone.getBoundingClientRect();
+      let any = false;
+      for (const t of touches) if (t.clientX <= zr.right + 80) any = true;
+      if (!any) this.releaseStick();
+    }
+    for (const [id, key] of [...this.btnPointers]) if (!inside(this.btnEls[key])) this.releaseButtonPointer(id);
   }
 
   moveStick(px, py) {
@@ -102,9 +139,8 @@ export class TouchControls {
 
   reset() {
     for (const k of Object.keys(this.state)) this.state[k] = k === 'x' || k === 'y' ? 0 : false;
-    this.stickId = null;
+    this.releaseStick();
     this.btnPointers.clear();
-    this.base.classList.remove('on');
     for (const b of this.el.querySelectorAll('.tb')) b.classList.remove('on');
   }
 
