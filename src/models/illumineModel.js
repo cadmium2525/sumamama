@@ -47,12 +47,12 @@ export function buildIllumine(variant = 0) {
   place(mesh(new THREE.TorusGeometry(0.029, 0.0035, 6, 20), curlM), torso, 0, 0.565, 0.0, Math.PI / 2 + 0.25, 0, 0);
 
   // ---------- 頭 ----------
-  const head = joint('head', torso, 0, 0.58, 0); j.head = head;
-  place(mesh(lathe([[0.001, -0.02], [0.04, 0.0], [0.078, 0.05], [0.094, 0.1], [0.09, 0.15], [0.07, 0.195], [0.035, 0.22], [0.001, 0.225]], 20), skin), head, 0, 0, 0, 0, 0, 0, [1, 1, 0.92]);
+  const head = joint('head', torso, 0, 0.55, 0); j.head = head;
+  place(mesh(lathe([[0.001, -0.005], [0.05, 0.005], [0.095, 0.05], [0.117, 0.115], [0.113, 0.18], [0.088, 0.232], [0.045, 0.26], [0.001, 0.265]], 24), skin), head, 0, 0, 0, 0, 0, 0, [1, 1, 0.94]);
   // 目（つり上がったアーモンド形）
   for (const s of [-1, 1]) {
-    place(mesh(new THREE.SphereGeometry(1, 16, 10), eyeM), head, s * 0.043, 0.1, 0.075, 0, s * 0.45, s * 0.42, [0.036, 0.021, 0.014]);
-    place(mesh(new THREE.SphereGeometry(0.006, 8, 6), basic(0xffffff, 1.4)), head, s * 0.047, 0.105, 0.087);
+    place(mesh(new THREE.SphereGeometry(1, 16, 10), eyeM), head, s * 0.05, 0.11, 0.094, 0, s * 0.42, s * 0.36, [0.046, 0.029, 0.016]);
+    place(mesh(new THREE.SphereGeometry(0.006, 8, 6), basic(0xffffff, 1.4)), head, s * 0.058, 0.12, 0.108);
   }
   // 額の渦巻き
   const spiral = [];
@@ -61,16 +61,16 @@ export function buildIllumine(variant = 0) {
     const r = 0.034 * (1 - i / 48);
     spiral.push(new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * r + (i < 6 ? (6 - i) * 0.006 : 0), 0));
   }
-  place(mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(spiral.reverse()), 50, 0.0055, 6), curlM), head, -0.045, 0.19, 0.075, -0.3, 0.35, 0);
+  place(mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(spiral.reverse()), 50, 0.0055, 6), curlM), head, -0.055, 0.215, 0.085, -0.3, 0.35, 0);
 
   // フード上段（きのこの傘）
   const hood = new THREE.Group(); hood.userData.keep = true;
   place(hood, head, 0, 0, -0.01);
   const capGeo = paramGeo(48, 12, (u, v, p) => {
     const phi = u * Math.PI * 2;
-    const drop = 0.2 - 0.07 * Math.cos(phi);
-    const y = 0.35 - drop * Math.pow(v, 1.5) + 0.016 * Math.cos(phi * 7) * v * v * v;
-    let r = 0.25 * Math.pow(Math.sin(Math.min(1, v * 1.12) * Math.PI / 2), 0.75) + 0.035 * Math.pow(v, 4);
+    const drop = 0.26 - 0.06 * Math.cos(phi);
+    const y = 0.44 - drop * Math.pow(v, 1.15) + 0.02 * Math.cos(phi * 7) * v * v * v;
+    let r = 0.27 * Math.pow(Math.sin(Math.min(1, v * 1.05) * Math.PI / 2), 0.75) + 0.035 * Math.pow(v, 4);
     r += 0.012 * Math.cos(phi * 7) * v * v * v;
     p.set(Math.sin(phi) * r, y, Math.cos(phi) * r * 0.95);
   });
@@ -80,9 +80,9 @@ export function buildIllumine(variant = 0) {
   const mantleGeo = paramGeo(56, 16, (u, v, p) => {
     const phi = F0 + u * (Math.PI * 2 - 2 * F0);
     const side = Math.pow(Math.sin(phi), 2);
-    const L = 0.24 + 0.2 * side;
-    const y = 0.17 - L * v + 0.03 * Math.cos(phi * 8) * v * v * v;
-    let r = 0.2 + (0.06 + 0.33 * side) * Math.pow(v, 1.6) + 0.035 * Math.sin(Math.PI * v);
+    const L = 0.2 + 0.13 * side;
+    const y = 0.23 - L * v + 0.035 * Math.cos(phi * 8) * v * v * v;
+    let r = 0.25 + (0.08 + 0.24 * side) * Math.pow(v, 1.3) + 0.06 * Math.sin(Math.PI * v);
     r += 0.018 * Math.cos(phi * 8) * v * v;
     p.set(Math.sin(phi) * r, y, Math.cos(phi) * r * 0.88 - 0.02);
   });
@@ -103,11 +103,11 @@ export function buildIllumine(variant = 0) {
   const dotM = basic(P.dots, 1.2);
   for (const s of [-1, 1]) {
     const key = s < 0 ? 'earR' : 'earL';
-    const ear = joint(key, head, s * 0.085, 0.31, -0.03);
+    const ear = joint(key, head, s * 0.1, 0.4, -0.03);
     base[key] = [-0.12, 0, s * -0.36];
     ear.rotation.set(...base[key]);
     place(mesh(new THREE.CylinderGeometry(0.018, 0.026, 0.07, 10), skin), ear, 0, 0.0, 0);
-    place(mesh(earGeo, earM), ear, 0, 0.03, 0, 0, 0, 0, [1, 1, 0.45]);
+    place(mesh(earGeo, earM), ear, 0, 0.03, 0, 0, 0, 0, [1.3, 1.3, 0.55]);
     for (let k = 0; k < 8; k++) {
       const row = k < 4 ? 0 : 1, c = k % 4;
       place(mesh(new THREE.SphereGeometry(0.009, 8, 6), dotM), ear, (c - 1.5) * 0.017, 0.07 + row * 0.022, 0.022, 0, 0, 0, [1, 1, 0.5]);
@@ -166,8 +166,8 @@ export function buildIllumine(variant = 0) {
   const L0 = 1.35;
   const lowGeo = paramGeo(56, 14, (u, v, p) => {
     const phi = L0 + u * (Math.PI * 2 - 2 * L0);
-    let r = 0.13 + 0.38 * Math.pow(v, 0.85) + 0.02 * Math.cos(phi * 6) * v * v;
-    const y = 0.14 - 0.66 * v + 0.04 * Math.cos(phi * 6) * v * v * v;
+    let r = 0.13 + 0.37 * Math.pow(v, 0.8) + 0.025 * Math.cos(phi * 6) * v * v;
+    const y = 0.14 - 0.5 * v + 0.075 * Math.cos(phi * 6) * v * v * v;
     p.set(Math.sin(phi) * r, y, Math.cos(phi) * r * 0.86 - 0.03);
   });
   place(shell(lowGeo, cloth, lining), skirt, 0, 0, 0);
@@ -177,7 +177,7 @@ export function buildIllumine(variant = 0) {
     const R = s < 0;
     const leg = joint(R ? 'legR' : 'legL', hips, s * 0.055, 0.02, 0);
     j[R ? 'legR' : 'legL'] = leg;
-    place(mesh(lathe([[0.001, 0.06], [0.05, 0.04], [0.074, -0.02], [0.079, -0.1], [0.068, -0.24], [0.045, -0.37], [0.034, -0.44], [0.001, -0.47]], 16), skin), leg, 0, 0, 0);
+    place(mesh(lathe([[0.001, 0.06], [0.05, 0.04], [0.074, -0.02], [0.079, -0.1], [0.068, -0.24], [0.045, -0.37], [0.034, -0.44], [0.001, -0.47]], 16), skin), leg, 0, 0, 0, 0, 0, 0, [0.86, 1, 0.86]);
     const shin = joint(R ? 'shinR' : 'shinL', leg, 0, -0.44, 0);
     j[R ? 'shinR' : 'shinL'] = shin;
     place(mesh(lathe([[0.001, 0.03], [0.033, 0.01], [0.038, -0.1], [0.032, -0.22], [0.02, -0.34], [0.012, -0.42], [0.001, -0.48]], 14), skin), shin, 0, 0, 0, 0, 0, 0, [1, 1, 1.15]);

@@ -8,7 +8,7 @@ const hb = (f0, f1, x, y, r, dmg, ang, bkb, kbg, extra = {}) => ({ f: [f0, f1], 
 
 // 剣の向き φ = armR.x + foreR.x + wep.x （0=前, -π/2=上, +π/2=下）
 // 待機: 大剣を右肩に担ぐ（参考画像01）
-const AI = { legR: [-0.1, 0, -0.06], shinR: [0.12, 0, 0], legL: [0.12, 0, 0.1], shinL: [0.2, 0, 0], by: -0.02, torso: [0.04, 0.12, 0], head: [0.05, -0.1, 0], armR: [-1.0, 0, -0.45], foreR: [-1.7, 0, 0], wep: [0.14, 0.34, -0.84], armL: [0.05, 0, 0.2], foreL: [-0.3, 0, 0] };
+const AI = { legR: [-0.12, 0, -0.07], shinR: [0.08, 0, 0], legL: [0.12, 0, 0.08], shinL: [0.24, 0, 0], by: -0.03, hips: [0, 0.12, 0.04], torso: [0.06, 0.06, -0.05], head: [0.08, -0.12, 0.04], armR: [-1.0, 0, -0.45], foreR: [-1.7, 0, 0], wep: [0.14, 0.34, -0.84], armL: [0.05, 0, 0.2], foreL: [-0.3, 0, 0] };
 const AIR = { legR: [-0.5, 0, -0.1], shinR: [0.8, 0, 0], legL: [0.2, 0, 0.1], shinL: [0.5, 0, 0], armR: [-0.5, 0, -0.5], foreR: [-0.6, 0, 0], wep: [1.2, 0, 0], armL: [-0.6, 0, 0.5], foreL: [-1.0, 0, 0], torso: [0.1, 0, 0] };
 const TUCK = { legR: [-1.1, 0, -0.1], shinR: [1.6, 0, 0], legL: [-0.8, 0, 0.1], shinL: [1.4, 0, 0] };
 const LUNGE = { legR: [-0.9, 0, -0.1], shinR: [0.8, 0, 0], legL: [0.7, 0, 0.1], shinL: [0.15, 0, 0], by: -0.22 };
@@ -261,7 +261,7 @@ export const DULLAHAN = {
   desc: '兜の奥に炎だけが灯る、中身のない生ける甲冑。大剣のリーチと一撃の重さ、アーマー突進とカウンターが武器の重量級。',
   specials: ['サンランス（ため突き）', 'ゴールデンラッシュ（アーマー体当たり）', 'ライジングクレスト（上昇斬り）', 'ブルワーク（カウンター）'],
   stats: {
-    weight: 116, height: 1.95, radius: 0.46,
+    weight: 116, height: 2.05, radius: 0.46,
     walkSpeed: 0.075, dashSpeed: 0.15, dashFrames: 12, runSpeed: 0.135, traction: 0.011,
     airSpeed: 0.088, airAccel: 0.0065, airFriction: 0.003,
     gravity: 0.0095, fallSpeed: 0.18, fastFall: 0.28,
