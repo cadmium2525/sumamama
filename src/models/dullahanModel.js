@@ -122,33 +122,35 @@ export function buildDullahan(variant = 0) {
   place(shell(lathe([[0.13, -0.02], [0.152, 0.05], [0.16, 0.13], [0.155, 0.185]], 28, Math.PI * 0.24, Math.PI * 1.52), silver, navy), hs, 0, 0, 0, 0, 0, 0, [0.96, 1, 1.05]);
   place(mesh(new THREE.SphereGeometry(0.128, 18, 14), basic(0x0a0608)), hs, 0, 0.11, 0.0);
   // 炎の瞳（横に広い三日月形の光）
-  place(mesh(new THREE.SphereGeometry(0.03, 14, 10), eyeM), hs, 0, 0.14, 0.112, 0, 0, 0, [1.7, 0.9, 0.5]);
-  place(mesh(new THREE.SphereGeometry(0.016, 10, 8), basic(0xffd040, 1.3)), hs, 0, 0.133, 0.126, 0, 0, 0, [1.3, 0.55, 0.5]);
+  place(mesh(new THREE.SphereGeometry(0.03, 14, 10), eyeM), hs, 0, 0.125, 0.112, 0, 0, 0, [1.3, 0.8, 0.5]);
+  place(mesh(new THREE.SphereGeometry(0.016, 10, 8), basic(0xffd040, 1.3)), hs, 0, 0.12, 0.126, 0, 0, 0, [1.0, 0.5, 0.5]);
   const glowTex = canvasTex(64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
   const eyeGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: P.eye, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
   eyeGlow.scale.setScalar(0.16);
-  eyeGlow.position.set(0, 0.138, 0.14);
+  eyeGlow.position.set(0, 0.124, 0.14);
   eyeGlow.userData.keep = true;
   hs.add(eyeGlow);
   // 金の額飾り（一枚の扇形の貝殻。浅い溝の畝が額いっぱいに広がる）
   const browGeo = paramGeo(96, 10, (u, v, p) => {
     // 目の真上の一点から放射状に広がる扇。畝は8本、上縁は波形
-    const a = (u - 0.5) * 2.0;
-    const rib = Math.pow(Math.abs(Math.cos((u - 0.5) * Math.PI * 8)), 0.6);
-    const rho = 0.035 + v * (0.16 - 0.03 * Math.abs(a) + 0.014 * rib);
-    const x2 = Math.sin(a) * rho * 1.1, y = 0.155 + Math.cos(a) * rho;
+    const a = (u - 0.5) * 2.2;
+    const rib = Math.pow(Math.abs(Math.cos((u - 0.5) * Math.PI * 9)), 0.6);
+    const rho = 0.045 + v * (0.15 + 0.007 * rib); // 丸い帆立貝の輪郭（上縁は浅い波）
+    const x2 = Math.sin(a) * rho, y = 0.165 + Math.cos(a) * rho;
     const phi = x2 / 0.165;
     const k = Math.max(0, (y - 0.17) / 0.19);
-    const r = 0.178 - 0.05 * k * k + 0.02 * rib * (0.4 + 0.6 * v);
+    const r = 0.18 - 0.05 * k * k + 0.016 * rib * (0.4 + 0.6 * v) + 0.022 * Math.sin(Math.PI * v);
     p.set(Math.sin(phi) * r * 0.96, y, Math.cos(phi) * r * 1.05);
   });
   place(mesh(browGeo, goldD), hs, 0, 0, 0);
   // 金の牙（額から顎の下まで垂れる長い格子。中央が最も長い）
-  const fangs = [[-0.1, 0.1, 0.112, 0.5], [-0.054, 0.15, 0.142, 0.25], [0, 0.2, 0.152, 0], [0.054, 0.15, 0.142, -0.25], [0.1, 0.1, 0.112, -0.5]];
-  for (const [x, len, z, ry] of fangs) {
-    const f = mesh(new THREE.ConeGeometry(0.04, len, 4), gold);
-    place(f, hs, x, 0.112 - len / 2, z, Math.PI + 0.1, ry + Math.PI / 4, x * 1.6, [1, 1, 0.45]);
+  const fangs = [[-0.105, 0.2, 0.108, 0.5, 0.15], [-0.058, 0.26, 0.142, 0.25, 0.135], [0, 0.3, 0.154, 0, 0.112], [0.058, 0.26, 0.142, -0.25, 0.135], [0.105, 0.2, 0.108, -0.5, 0.15]];
+  for (const [x, len, z, ry, top] of fangs) {
+    const f = mesh(new THREE.ConeGeometry(0.026, len, 4), gold);
+    place(f, hs, x * (1 - 0.12), top - len / 2, z, Math.PI + 0.1, ry + Math.PI / 4, x * 1.3, [1, 1, 0.5]);
   }
+  // 頬当ての下縁の金縁（前は開く）
+  place(mesh(new THREE.TorusGeometry(0.134, 0.014, 6, 28, Math.PI * 1.52), gold), hs, 0, -0.02, 0, Math.PI / 2, 0, Math.PI * 0.74, [0.96, 1.05, 1]);
   // 耳の円盤
   for (const s of [-1, 1]) {
     place(mesh(new THREE.SphereGeometry(0.048, 16, 12), gold), hs, s * 0.152, 0.15, -0.005, 0, 0, 0, [0.6, 1, 1]);
@@ -271,7 +273,8 @@ export function buildDullahan(variant = 0) {
     j[R ? 'shinR' : 'shinL'] = shin;
     // 膝の金の炎飾り
     place(mesh(new THREE.SphereGeometry(0.06, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), gold), shin, 0, 0.0, 0.07, Math.PI / 2, 0, 0, [1, 1, 0.6]);
-    place(mesh(new THREE.ConeGeometry(0.07, 0.36, 6), gold), shin, 0, 0.17, 0.105, -0.12, 0, 0, [1, 1, 0.5]);
+    place(mesh(new THREE.ConeGeometry(0.065, 0.22, 6), gold), shin, 0, 0.1, 0.105, -0.12, 0, 0, [1, 1, 0.5]);
+    for (const k of [-1, 1]) place(mesh(new THREE.ConeGeometry(0.04, 0.12, 5), gold), shin, k * 0.055, 0.05, 0.1, -0.2, 0, k * -0.5, [1, 1, 0.5]);
     // すね当て（裾が広がる）
     place(shell(lathe([[0.136, 0.02], [0.122, -0.08], [0.114, -0.23], [0.078, -0.42], [0.07, -0.52], [0.074, -0.57]], 24), silver, navy), shin, 0, 0, -0.015, 0, 0, 0, [1, 1, 1.22]);
     place(mesh(new THREE.ConeGeometry(0.04, 0.12, 4), silver), shin, 0, -0.02, 0.095, Math.PI, 0, 0, [1, 1, 0.4]);

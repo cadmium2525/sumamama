@@ -142,7 +142,7 @@ export function buildDragon(variant = 0) {
     const y = 0.72 - i * 0.082;
     const w = 0.2 - i * 0.008;
     const r = [0.2, 0.28, 0.35, 0.35, 0.3, 0.25, 0.23, 0.2, 0.19][i];
-    place(mesh(new THREE.SphereGeometry(1, 14, 6), belly), torso, 0, y, r * 0.74 + (i < 4 ? 0.035 : 0.0), -0.12, 0, 0, [w * 1.15, 0.05, 0.07]);
+    place(mesh(new THREE.SphereGeometry(1, 14, 6), belly), torso, 0, y, r * 0.74 + (i < 4 ? 0.035 : 0.0), -0.12, 0, 0, [w * 1.2, 0.058, 0.07]);
   }
   // 背中の山形の稜
   for (let i = 0; i < 4; i++) {
@@ -208,6 +208,7 @@ export function buildDragon(variant = 0) {
     const R = s < 0;
     const arm = joint(R ? 'armR' : 'armL', torso, s * 0.4, 0.6, 0);
     j[R ? 'armR' : 'armL'] = arm;
+    arm.scale.setScalar(1.15); // 長い腕
     place(mesh(new THREE.SphereGeometry(0.14, 8, 6), red), arm, 0, 0.0, 0);
     place(mesh(taperCapsule(0.3, 0.11, 0.09, 8), red), arm, 0, 0, 0);
     place(mesh(new THREE.SphereGeometry(1, 7, 5), red), arm, 0, -0.14, 0.05, 0, 0, 0, [0.125, 0.15, 0.125]); // 力こぶ
@@ -277,7 +278,7 @@ export function buildDragon(variant = 0) {
 
   // ---------- 翼（earL/earR ジョイントを翼として使う） ----------
   const wingShape = new THREE.Shape();
-  const Rp = [0, 0], E = [0.34, 0.4], W = [0.72, 0.74], M1 = [1.5, 0.42], T1 = [2.05, -0.42], T2 = [1.5, -0.34], T3 = [1.02, -0.24], T4 = [0.56, -0.14], B = [0.15, -0.12];
+  const Rp = [0, 0], E = [0.34, 0.4], W = [0.72, 0.74], M1 = [1.5, 0.42], T1 = [2.1, -0.45], T2 = [1.5, -0.34], T3 = [1.02, -0.24], T4 = [0.56, -0.14], B = [0.15, -0.12];
   const inward = (a, b) => [(a[0] + b[0]) / 2 * 0.62 + W[0] * 0.38, (a[1] + b[1]) / 2 * 0.62 + W[1] * 0.38];
   wingShape.moveTo(...Rp); wingShape.lineTo(...E); wingShape.lineTo(...W); wingShape.quadraticCurveTo(...M1, ...T1);
   for (const [a, b] of [[T1, T2], [T2, T3], [T3, T4], [T4, B]]) wingShape.quadraticCurveTo(...inward(a, b), ...b);
