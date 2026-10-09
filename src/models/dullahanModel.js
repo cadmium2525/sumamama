@@ -41,18 +41,18 @@ export function buildDullahan(variant = 0) {
   const hipDeco = new THREE.Group();
   hipDeco.scale.set(0.74, 1, 0.76);
   hips.add(hipDeco);
-  place(mesh(new THREE.SphereGeometry(0.15, 20, 14), navyF), hipDeco, 0, 0.12, 0, 0, 0, 0, [1.0, 0.6, 0.8]);
+  place(mesh(new THREE.SphereGeometry(0.15, 20, 14), navyF), hipDeco, 0, 0.14, 0, 0, 0, 0, [0.9, 0.5, 0.75]);
   // ベルト（銀帯＋金の上縁）
   place(shell(lathe([[0.215, 0.18], [0.225, 0.2], [0.225, 0.27], [0.215, 0.29]], 28), silver, navy), hipDeco, 0, 0, 0, 0, 0, 0, [1, 1, 0.82]);
   place(mesh(new THREE.TorusGeometry(0.222, 0.016, 8, 32), gold), hipDeco, 0, 0.29, 0, Math.PI / 2, 0, 0, [1, 0.82, 1]);
   // 草摺り（左側の大きな曲面板・背面）
   const tasset = (phi0, len, drop, parent) => {
-    const g = shell(lathe([[0.22, 0.18], [0.255, 0.1], [0.31, -0.03], [0.345, -0.1 - drop]], 20, phi0, len), silver, navy);
+    const g = shell(lathe([[0.22, 0.18], [0.255, 0.1], [0.3, 0.02], [0.33, -0.03 - drop]], 20, phi0, len), silver, navy);
     g.scale.set(1, 1, 0.84);
     parent.add(g);
-    const rim = mesh(new THREE.TorusGeometry(0.345, 0.015, 6, 20, len), gold);
+    const rim = mesh(new THREE.TorusGeometry(0.33, 0.015, 6, 20, len), gold);
     rim.rotation.set(Math.PI / 2, 0, -phi0 + Math.PI / 2 - len);
-    rim.position.y = -0.1 - drop;
+    rim.position.y = -0.03 - drop;
     rim.scale.set(1, 0.84, 1);
     parent.add(rim);
   };
@@ -76,8 +76,8 @@ export function buildDullahan(variant = 0) {
   const chestPts = [[0.12, 0.35], [0.18, 0.39], [0.275, 0.47], [0.32, 0.56], [0.295, 0.635], [0.2, 0.685], [0.14, 0.7]];
   place(shell(lathe(chestPts, 32), silver, navy), torso, 0, 0, 0.02, 0, 0, 0, [1, 1, 0.78]);
   // 首まわりの金縁と胸の中央の金の稜線
-  // 襟の金のV字帯
-  for (const s of [-1, 1]) place(mesh(new THREE.CapsuleGeometry(0.022, 0.2, 4, 8), gold), torso, s * 0.085, 0.6, 0.235, 0.35, 0, s * 1.05);
+  // 襟の金縁（首まわりの輪。前が少し下がる）
+  place(mesh(new THREE.TorusGeometry(0.152, 0.024, 8, 28), gold), torso, 0, 0.69, 0.03, Math.PI / 2 + 0.22, 0, 0, [1, 0.8, 1]);
   for (let i = 0; i < 4; i++) {
     const y = 0.64 - i * 0.075;
     const r = [0.25, 0.3, 0.29, 0.25][i];
@@ -92,9 +92,10 @@ export function buildDullahan(variant = 0) {
     const pa = new THREE.Group();
     place(pa, torso, s * 0.345, 0.63, 0, 0, 0, s * -0.3, 1.04);
     place(shell(new THREE.SphereGeometry(0.2, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.6), silver, navy), pa, 0, 0, 0, 0, 0, 0, [1.12, 0.88, 1.08]);
-    place(mesh(new THREE.TorusGeometry(0.2 * Math.sin(Math.PI * 0.6) * 1.12, 0.03, 8, 28), gold), pa, 0, 0.2 * Math.cos(Math.PI * 0.6) * 0.88, 0, Math.PI / 2, 0, 0, [1, 0.98, 1.1]);
-    const sp1 = mesh(new THREE.ConeGeometry(0.075, 0.32, 10), gold);
-    place(sp1, pa, s * 0.17, 0.15, 0.02, 0, 0, s * -0.7);
+    // 下縁の金の縁取り（胸側は開ける）
+    place(mesh(new THREE.TorusGeometry(0.2 * Math.sin(Math.PI * 0.6) * 1.12, 0.024, 8, 28, Math.PI * 1.3), gold), pa, 0, 0.2 * Math.cos(Math.PI * 0.6) * 0.88, 0, Math.PI / 2, 0, s > 0 ? -Math.PI * 0.65 : Math.PI * 0.35, [1, 0.98, 1.1]);
+    const sp1 = mesh(new THREE.ConeGeometry(0.075, 0.4, 10), gold);
+    place(sp1, pa, s * 0.15, 0.2, 0.02, 0, 0, s * -0.5);
     const sp2 = mesh(new THREE.ConeGeometry(0.06, 0.24, 10), gold);
     place(sp2, pa, s * 0.22, 0.03, -0.09, -0.5, 0, s * -1.15);
     place(mesh(new THREE.ConeGeometry(0.058, 0.22, 10), gold), pa, s * 0.2, 0.05, 0.11, 0.6, 0, s * -1.05);
@@ -148,11 +149,21 @@ export function buildDullahan(variant = 0) {
   // 先端が襟に埋もれない長さにする（中央が最も下まで届く）
   const fangs = [[-0.105, 0.15, 0.108, 0.5, 0.15], [-0.058, 0.18, 0.142, 0.25, 0.135], [0, 0.19, 0.154, 0, 0.105], [0.058, 0.18, 0.142, -0.25, 0.135], [0.105, 0.15, 0.108, -0.5, 0.15]];
   for (const [x, len, z, ry, top] of fangs) {
-    const f = mesh(new THREE.ConeGeometry(0.034, len, 4), gold);
-    place(f, hs, x * (1 - 0.12), top - len / 2, z, Math.PI + 0.1, ry + Math.PI / 4, x * 1.6, [1, 1, 0.5]);
+    const fgeo = new THREE.ConeGeometry(0.026, len, 4);
+    fgeo.rotateY(Math.PI / 4); fgeo.scale(1, 1, 0.5); // 平たい刃。左右対称に内側へ傾ける
+    place(mesh(fgeo, gold), hs, x * (1 - 0.12), top - len / 2, z, Math.PI + 0.1, -ry, x * -1.8);
   }
-  // 頬当ての下縁の金縁（前は開く）
-  place(mesh(new THREE.TorusGeometry(0.134, 0.014, 6, 28, Math.PI * 1.52), gold), hs, 0, -0.02, 0, Math.PI / 2, 0, Math.PI * 0.74, [0.96, 1.05, 1]);
+  // 頬当て（開口の下の角を覆い、黒い開口を逆三角形に見せる。下縁は金）
+  const silverD = silver.clone(); silverD.side = THREE.DoubleSide;
+  const cheek = new THREE.Shape();
+  cheek.moveTo(0, 0.14); cheek.lineTo(0, -0.03); cheek.lineTo(0.078, -0.03); cheek.lineTo(0, 0.14);
+  const cheekGeo = new THREE.ShapeGeometry(cheek);
+  for (const s of [-1, 1]) {
+    const c = new THREE.Group();
+    place(c, hs, s * 0.122, 0, 0.098, 0, s * -0.62, 0, [-s, 1, 1]);
+    c.add(mesh(cheekGeo, silverD));
+    place(mesh(new THREE.BoxGeometry(0.095, 0.016, 0.016), gold), c, 0.04, -0.032, 0);
+  }
   // 耳の円盤
   for (const s of [-1, 1]) {
     place(mesh(new THREE.SphereGeometry(0.048, 16, 12), gold), hs, s * 0.152, 0.15, -0.005, 0, 0, 0, [0.6, 1, 1]);
@@ -267,9 +278,9 @@ export function buildDullahan(variant = 0) {
     const R = s < 0;
     const leg = joint(R ? 'legR' : 'legL', hips, s * 0.17, -0.02, 0);
     j[R ? 'legR' : 'legL'] = leg;
-    place(mesh(new THREE.SphereGeometry(0.055, 12, 10), navyF), leg, 0, -0.05, 0);
+    place(mesh(new THREE.SphereGeometry(0.05, 12, 10), navyF), leg, 0, -0.1, 0);
     // 腿当て（浮いた筒）
-    { const g = lathe([[0.168, 0.02], [0.172, -0.06], [0.142, -0.28], [0.106, -0.45]], 6); g.rotateY(Math.PI / 6); place(shell(g, silver, navy), leg, 0, 0, 0, 0, 0, 0, [1, 1, 0.78]); }
+    { const g = lathe([[0.165, -0.1], [0.172, -0.16], [0.146, -0.32], [0.11, -0.46]], 6); g.rotateY(Math.PI / 6); place(shell(g, silver, navy), leg, 0, 0, 0, 0, 0, 0, [1, 1, 0.78]); }
     place(mesh(new THREE.SphereGeometry(0.058, 12, 10), navyF), leg, 0, -0.49, 0);
     const shin = joint(R ? 'shinR' : 'shinL', leg, 0, -0.5, 0);
     j[R ? 'shinR' : 'shinL'] = shin;
@@ -282,7 +293,7 @@ export function buildDullahan(variant = 0) {
     place(mesh(new THREE.ConeGeometry(0.04, 0.12, 4), silver), shin, 0, -0.02, 0.095, Math.PI, 0, 0, [1, 1, 0.4]);
     // 浮いた鉄靴（重ね板と金の底）
     const foot = new THREE.Group();
-    place(foot, shin, 0, -0.64, 0.03, 0, 0, 0, [1.3, 1.3, 1.45]);
+    place(foot, shin, 0, -0.62, 0.03, 0, 0, 0, [1.08, 1.08, 1.2]);
     place(mesh(new THREE.BoxGeometry(0.09, 0.012, 0.22), metal(0x9a7430, { rough: 0.5, metal: 0.5, env: 0.7 })), foot, 0, -0.055, 0.035);
     place(mesh(new THREE.SphereGeometry(1, 16, 12), silver), foot, 0, -0.005, 0.05, 0, 0, 0, [0.066, 0.058, 0.15]);
     place(mesh(new THREE.ConeGeometry(0.045, 0.1, 8), silver), foot, 0, -0.02, 0.2, Math.PI / 2, 0, 0, [1, 1, 0.6]);

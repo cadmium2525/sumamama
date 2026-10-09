@@ -6,7 +6,7 @@ import { taperCapsule, disposeTree } from './common.js';
 import { blobShadow } from './kit.js';
 
 const VARIANTS = [
-  { red: 0x8e150c, dark: 0x560a06, belly: 0xc09a50, membrane: 0x9c7a42, claw: 0xf4ecf0, spike: 0xffcc20, frill: 0xb89a54, eye: 0x7aa83a },
+  { red: 0x8e150c, dark: 0x560a06, belly: 0xc09a50, membrane: 0x9c7a42, claw: 0xf4ecf0, spike: 0xffb81c, frill: 0xa8802c, eye: 0x5e8a2e },
   { red: 0x24408a, dark: 0x142656, belly: 0xc6d4e6, membrane: 0x5a8ab8, claw: 0xf0f4ff, spike: 0x5fe6ff, frill: 0x8fd8ff, eye: 0xffd24a },
 ];
 
@@ -55,7 +55,7 @@ class Tail {
       s.rotation.set(Math.PI / 2 + rz * 0.6, ry, 0);
       this.tip.add(s);
     }
-    this.tip.scale.set(1.0, 1.0, 1.6);
+    this.tip.scale.setScalar(1.7);
     this._t = new THREE.Vector3(); this._n = new THREE.Vector3(); this._b = new THREE.Vector3();
   }
   // lift: 上下の反り、swing: 左右の振り、time: 揺らぎ
@@ -108,7 +108,7 @@ export function buildDragon(variant = 0) {
   const claw = gloss(P.claw, { rough: 0.3, metal: 0.05, env: 0.8 });
   const frill = gloss(P.frill, { rough: 0.5, metal: 0.1, env: 0.6, emissive: new THREE.Color(P.frill).multiplyScalar(0.06), side: THREE.DoubleSide });
   const mouthM = gloss(0x5a0808, { rough: 0.6 });
-  const tongue = gloss(0xe0541a, { rough: 0.6 });
+  const tongue = gloss(0xd8470e, { rough: 0.7, env: 0.3 });
   const eyeM = basic(P.eye, 1.0);
   const memFront = new THREE.MeshStandardMaterial({ color: P.membrane, roughness: 0.75, metalness: 0, envMapIntensity: 0.5, side: THREE.FrontSide });
   const memBack = new THREE.MeshStandardMaterial({ color: new THREE.Color(P.red).multiplyScalar(0.82), roughness: 0.95, metalness: 0, envMapIntensity: 0.15, side: THREE.BackSide });
@@ -156,7 +156,7 @@ export function buildDragon(variant = 0) {
   place(mesh(taperCapsule(0.22, 0.13, 0.16, 8), red), head, 0, 0.2, 0.03, -0.35, 0, 0);
   for (let i = 0; i < 3; i++) place(mesh(new THREE.SphereGeometry(1, 8, 5), belly), head, 0, 0.04 + i * 0.075, 0.115 + i * 0.03, -0.3, 0, 0, [0.075, 0.04, 0.045]);
   const skull = new THREE.Group();
-  place(skull, head, 0, 0.32, 0.1, 0.05, 0, 0, 0.9);
+  place(skull, head, 0, 0.32, 0.1, 0.05, 0, 0, 1.0);
   // 四角すい台を前へ向けて「くさび」を作る
   const wedge = (pts, parent, x, y, z, rx, sx, sy, mat = red) => {
     const g = lathe(pts, 4);
@@ -176,7 +176,7 @@ export function buildDragon(variant = 0) {
   { const g = lathe([[0.11, 0.0], [0.092, 0.12], [0.066, 0.25], [0.03, 0.32]], 6); place(mesh(g, mouthM), skull, 0, -0.03, 0.1, Math.PI / 2 - 0.08, 0, 0, [0.66, 1, 0.3]); }
   { const g = lathe([[0.09, 0.0], [0.07, 0.12], [0.042, 0.24], [0.01, 0.29]], 6); place(mesh(g, mouthM), jaw, 0, -0.002, 0.0, Math.PI / 2, 0, 0, [0.9, 1, 0.3]); }
   place(mesh(new THREE.SphereGeometry(0.075, 8, 6), mouthM), skull, 0, -0.05, 0.08, 0, 0, 0, [1, 0.8, 1]);
-  place(mesh(new THREE.SphereGeometry(1, 8, 6), tongue), jaw, 0, 0.02, 0.1, 0, 0, 0, [0.05, 0.02, 0.095]);
+  place(mesh(new THREE.SphereGeometry(1, 8, 6), tongue), jaw, 0, 0.02, 0.11, 0, 0, 0, [0.046, 0.02, 0.11]);
   for (const s of [-1, 1]) {
     // 歯（上あごと下あごの縁）
     for (let k = 0; k < 6; k++) {
@@ -192,10 +192,10 @@ export function buildDragon(variant = 0) {
     // 頬のヒレ（金色）
     const fs = new THREE.Shape();
     fs.moveTo(0, 0.02); fs.lineTo(0.11, 0.07); fs.lineTo(0.085, 0.015); fs.lineTo(0.125, -0.02); fs.lineTo(0.08, -0.035); fs.lineTo(0.1, -0.085); fs.lineTo(0, -0.05);
-    const fg = new THREE.ExtrudeGeometry(fs, { depth: 0.014, bevelEnabled: false });
-    place(mesh(fg, frill), skull, s * 0.12, -0.01, 0.0, 0, s < 0 ? Math.PI + 0.75 : -0.75, s * 0.1, 0.85);
+    const fg = new THREE.ShapeGeometry(fs); // 薄い膜
+    place(mesh(fg, frill), skull, s * 0.12, -0.01, 0.0, 0, s < 0 ? Math.PI + 0.75 : -0.75, s * 0.1, 1.1);
     // 角: 斜め上へ広がる角と、横へ張る角
-    place(mesh(new THREE.ConeGeometry(0.07, 0.3, 5), red), skull, s * 0.12, 0.15, -0.05, -0.3, 0, s * -0.9, [1, 1, 0.5]);
+    place(mesh(new THREE.ConeGeometry(0.07, 0.22, 5), red), skull, s * 0.11, 0.13, -0.05, -0.3, 0, s * -0.9, [1, 1, 0.5]);
     place(mesh(new THREE.ConeGeometry(0.045, 0.14, 5), red), skull, s * 0.14, 0.04, -0.06, -0.3, 0, s * -1.25, [1, 1, 0.5]);
   }
   place(mesh(new THREE.ConeGeometry(0.085, 0.3, 5), red), skull, 0, 0.21, -0.05, -0.3, 0, 0, [1, 1, 0.5]); // 中央の角
@@ -218,7 +218,7 @@ export function buildDragon(variant = 0) {
     place(mesh(new THREE.SphereGeometry(1, 7, 5), red), fore, 0, -0.08, -0.02, 0, 0, 0, [0.095, 0.11, 0.09]);
     // 手と爪（開いた鉤爪）
     const hand = new THREE.Group();
-    place(hand, fore, 0, -0.3, 0.02);
+    place(hand, fore, 0, -0.3, 0.02, 0, 0, 0, 1.3); // 大きな鉤爪の手
     place(mesh(new THREE.SphereGeometry(1, 12, 10), red), hand, 0, 0, 0, 0, 0, 0, [0.075, 0.065, 0.085]);
     for (let k = 0; k < 4; k++) {
       const f = new THREE.Group();
@@ -279,7 +279,7 @@ export function buildDragon(variant = 0) {
   // ---------- 翼（earL/earR ジョイントを翼として使う） ----------
   const wz = (x) => 0.16 * x * x; // 翼端ほど前へ巻き込む
   const wingShape = new THREE.Shape();
-  const Rp = [0, 0], E = [0.3, 0.36], W = [0.6, 0.66], M1 = [1.45, 0.5], T1 = [2.1, -0.2], T2 = [1.4, -0.48], T3 = [0.9, -0.2], T4 = [0.58, -0.06], B = [0.2, -0.06];
+  const Rp = [0, 0], E = [0.3, 0.36], W = [0.62, 0.58], M1 = [1.45, 0.56], T1 = [2.1, -0.2], T2 = [1.4, -0.48], T3 = [0.9, -0.2], T4 = [0.58, -0.06], B = [0.2, -0.06];
   const inward = (a, b) => [(a[0] + b[0]) / 2 * 0.55 + W[0] * 0.45, (a[1] + b[1]) / 2 * 0.55 + W[1] * 0.45];
   wingShape.moveTo(...Rp); wingShape.lineTo(...E); wingShape.lineTo(...W); wingShape.quadraticCurveTo(...M1, ...T1);
   for (const [a, b] of [[T1, T2], [T2, T3], [T3, T4], [T4, B]]) wingShape.quadraticCurveTo(...inward(a, b), ...b);
