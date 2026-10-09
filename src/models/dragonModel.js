@@ -6,7 +6,7 @@ import { taperCapsule, disposeTree } from './common.js';
 import { blobShadow } from './kit.js';
 
 const VARIANTS = [
-  { red: 0x9c1a0e, dark: 0x560a06, belly: 0xc09a50, membrane: 0x9c7a42, claw: 0xf4ecf0, spike: 0xffa416, frill: 0x9a7a34, eye: 0x7aa83a },
+  { red: 0x9c1a0e, dark: 0x560a06, belly: 0xc09a50, membrane: 0x9c7a42, claw: 0xf4ecf0, spike: 0xffa416, frill: 0xb89a54, eye: 0x7aa83a },
   { red: 0x24408a, dark: 0x142656, belly: 0xc6d4e6, membrane: 0x5a8ab8, claw: 0xf0f4ff, spike: 0x5fe6ff, frill: 0x8fd8ff, eye: 0xffd24a },
 ];
 
@@ -43,7 +43,7 @@ class Tail {
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
     g.setIndex(idx);
     this.geo = g;
-    this.mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.45, metalness: 0.05, envMapIntensity: 0.7 });
+    this.mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6, metalness: 0.02, envMapIntensity: 0.45, flatShading: true });
     this.mesh = new THREE.Mesh(g, this.mat);
     this.mesh.frustumCulled = false;
     this.pts = Array.from({ length: n + 1 }, () => new THREE.Vector3());
@@ -154,7 +154,7 @@ export function buildDragon(variant = 0) {
   // くさび形の頭。星形に広がる5本の角、金色の頬ヒレ、開いた口の奥に橙の舌。
   const head = joint('head', torso, 0, 0.74, 0.04); j.head = head;
   place(mesh(taperCapsule(0.22, 0.13, 0.16, 8), red), head, 0, 0.2, 0.03, -0.35, 0, 0);
-  for (let i = 0; i < 3; i++) place(mesh(new THREE.SphereGeometry(1, 8, 5), belly), head, 0, 0.04 + i * 0.075, 0.14 + i * 0.03, -0.3, 0, 0, [0.12, 0.04, 0.05]);
+  for (let i = 0; i < 3; i++) place(mesh(new THREE.SphereGeometry(1, 8, 5), belly), head, 0, 0.04 + i * 0.075, 0.14 + i * 0.03, -0.3, 0, 0, [0.1, 0.04, 0.045]);
   const skull = new THREE.Group();
   place(skull, head, 0, 0.32, 0.1, 0.05, 0, 0, 1.0);
   // 四角すい台を前へ向けて「くさび」を作る
@@ -172,7 +172,10 @@ export function buildDragon(variant = 0) {
   place(jaw, skull, 0, -0.06, 0.06, 0.68, 0, 0);
   { const g = lathe([[0.1, 0.0], [0.08, 0.12], [0.05, 0.24], [0.015, 0.3], [0.0, 0.31]], 6); place(mesh(g, red), jaw, 0, -0.02, 0.0, Math.PI / 2, 0, 0, [0.75, 1, 0.4]); }
   // 口の中と舌
-  place(mesh(new THREE.BoxGeometry(0.1, 0.06, 0.17), mouthM), skull, 0, -0.065, 0.12, 0.25, 0, 0);
+  // 口の中（上あごの裏と下あごの内側を暗い面にする。四角い穴には見せない）
+  { const g = lathe([[0.11, 0.0], [0.092, 0.12], [0.066, 0.25], [0.03, 0.32]], 6); place(mesh(g, mouthM), skull, 0, -0.03, 0.1, Math.PI / 2 - 0.08, 0, 0, [0.66, 1, 0.3]); }
+  { const g = lathe([[0.09, 0.0], [0.07, 0.12], [0.042, 0.24], [0.01, 0.29]], 6); place(mesh(g, mouthM), jaw, 0, -0.002, 0.0, Math.PI / 2, 0, 0, [0.7, 1, 0.3]); }
+  place(mesh(new THREE.SphereGeometry(0.075, 8, 6), mouthM), skull, 0, -0.05, 0.08, 0, 0, 0, [1, 0.8, 1]);
   place(mesh(new THREE.SphereGeometry(1, 8, 6), tongue), jaw, 0, 0.02, 0.1, 0, 0, 0, [0.05, 0.02, 0.095]);
   for (const s of [-1, 1]) {
     // 歯（上あごと下あごの縁）
@@ -190,7 +193,7 @@ export function buildDragon(variant = 0) {
     const fs = new THREE.Shape();
     fs.moveTo(0, 0.02); fs.lineTo(0.11, 0.07); fs.lineTo(0.085, 0.015); fs.lineTo(0.125, -0.02); fs.lineTo(0.08, -0.035); fs.lineTo(0.1, -0.085); fs.lineTo(0, -0.05);
     const fg = new THREE.ExtrudeGeometry(fs, { depth: 0.014, bevelEnabled: false });
-    place(mesh(fg, frill), skull, s * 0.12, -0.01, 0.0, 0, s < 0 ? Math.PI + 0.75 : -0.75, s * 0.1, 1.2);
+    place(mesh(fg, frill), skull, s * 0.12, -0.01, 0.0, 0, s < 0 ? Math.PI + 0.75 : -0.75, s * 0.1, 0.85);
     // 角: 斜め上へ広がる角と、横へ張る角
     place(mesh(new THREE.ConeGeometry(0.07, 0.3, 5), red), skull, s * 0.12, 0.15, -0.05, -0.3, 0, s * -0.9, [1, 1, 0.5]);
     place(mesh(new THREE.ConeGeometry(0.045, 0.14, 5), red), skull, s * 0.14, 0.04, -0.06, -0.3, 0, s * -1.25, [1, 1, 0.5]);
@@ -257,7 +260,7 @@ export function buildDragon(variant = 0) {
     place(mesh(new THREE.SphereGeometry(1, 8, 6), red), shin, 0, -0.13, -0.11, 0, 0, 0, [0.1, 0.13, 0.09]);
     place(mesh(new THREE.ConeGeometry(0.035, 0.16, 6), claw), shin, 0, -0.27, -0.24, -2.0, 0, 0); // 踵の蹴爪
     const foot = new THREE.Group();
-    place(foot, shin, 0, -0.47, 0.05, -0.45, 0, 0); // 待機姿勢で足裏が水平に接地する
+    place(foot, shin, 0, -0.47, 0.05, -0.45, 0, s * -0.42); // 待機姿勢で足裏が水平に接地する
     place(mesh(new THREE.SphereGeometry(1, 10, 6), red), foot, 0, 0, 0.08, 0, 0, 0, [0.16, 0.075, 0.23]);
     for (let k = 0; k < 4; k++) {
       const x = (k - 1.5) * 0.075;
@@ -298,11 +301,11 @@ export function buildDragon(variant = 0) {
   for (const s of [-1, 1]) {
     const key = s < 0 ? 'earR' : 'earL';
     const wj = joint(key, torso, s * 0.14, 0.64, -0.2);
-    base[key] = [0.1, s * -0.15, s * -0.05];
+    base[key] = [0.1, s * -0.45, s * -0.05];
     wj.rotation.set(...base[key]);
     j[key] = wj;
     const wg = new THREE.Group(); wg.userData.keep = true;
-    wg.scale.set(s * 1.18, 1.18, 1.18);
+    wg.scale.set(s * 1.25, 1.25, 1.25);
     wj.add(wg);
     wg.add(shell(memGeo, memFront, memBack));
     bone(Rp, E, 0.055, 0.045, wg); bone(E, W, 0.045, 0.035, wg);

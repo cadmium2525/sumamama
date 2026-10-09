@@ -61,7 +61,7 @@ export function buildDullahan(variant = 0) {
   tasset(Math.PI * 1.7, Math.PI * 0.46, -0.13, hipDeco); // 前（短い）
   // 前右（-X）の垂れ板と金の紋章＋青い宝石
   const front = new THREE.Group();
-  place(front, hipDeco, -0.09, 0.14, 0.215, 0.12, -0.3, 0, 1.45);
+  place(front, hipDeco, -0.09, 0.14, 0.215, 0.12, -0.3, 0, 1.05);
     const em = new THREE.Shape();
   em.moveTo(0, 0.1); em.lineTo(0.065, 0.06); em.lineTo(0.06, -0.05); em.lineTo(0, -0.13); em.lineTo(-0.06, -0.05); em.lineTo(-0.065, 0.06); em.lineTo(0, 0.1);
   place(mesh(new THREE.ExtrudeGeometry(em, { depth: 0.02, bevelEnabled: true, bevelSize: 0.008, bevelThickness: 0.008, bevelSegments: 2 }), gold), front, 0, -0.02, 0.012);
@@ -69,6 +69,8 @@ export function buildDullahan(variant = 0) {
 
   // ---------- 胴 ----------
   place(mesh(new THREE.CylinderGeometry(0.13, 0.14, 0.14, 20, 1, true), navyF), torso, 0, 0.3, 0);
+  // 腹当て（胸当てとベルトの間を覆う細い板）
+  place(shell(lathe([[0.165, 0.27], [0.15, 0.32], [0.162, 0.385]], 24), silver, navy), torso, 0, 0, 0.01, 0, 0, 0, [1, 1, 0.8]);
   // 逆三角形の胸当て（上が広く、腰に向かって絞る）
   const chestPts = [[0.12, 0.35], [0.18, 0.39], [0.275, 0.47], [0.32, 0.56], [0.295, 0.635], [0.2, 0.685], [0.14, 0.7]];
   place(shell(lathe(chestPts, 32), silver, navy), torso, 0, 0, 0.02, 0, 0, 0, [1, 1, 0.78]);
@@ -228,8 +230,8 @@ export function buildDullahan(variant = 0) {
   horn.lineTo(0, 0.05);
   const hornGeo = new THREE.ExtrudeGeometry(horn, { depth: 0.07, bevelEnabled: true, bevelSize: 0.016, bevelThickness: 0.014, bevelSegments: 2, curveSegments: 10 });
   hornGeo.translate(0, 0, -0.035);
-  place(mesh(hornGeo, gold), sword, 0, 0, 0.15, 0, -Math.PI / 2, 0);
-  place(mesh(new THREE.BoxGeometry(0.06, 0.34, 0.05), gold), sword, 0, 0, 0.15);
+  place(mesh(hornGeo, goldD), sword, 0, 0, 0.15, 0, -Math.PI / 2, 0, [0.75, -0.75, 1.2]); // 手の外側へ巻く三日月
+  place(mesh(new THREE.BoxGeometry(0.07, 0.2, 0.06), gold), sword, 0, 0, 0.15);
   // 刀身（先細りの両刃・中央に黒い樋）
   const bs = new THREE.Shape();
   bs.moveTo(0.14, -0.095); bs.lineTo(1.2, -0.08); bs.lineTo(1.46, 0); bs.lineTo(1.2, 0.08); bs.lineTo(0.14, 0.095); bs.lineTo(0.14, -0.095);
@@ -263,7 +265,7 @@ export function buildDullahan(variant = 0) {
     j[R ? 'legR' : 'legL'] = leg;
     place(mesh(new THREE.SphereGeometry(0.055, 12, 10), navyF), leg, 0, -0.05, 0);
     // 腿当て（浮いた筒）
-    place(shell(lathe([[0.172, -0.0], [0.176, -0.07], [0.15, -0.3], [0.118, -0.45]], 24), silver, navy), leg, 0, 0, 0, 0, 0, 0, [1, 1, 0.84]);
+    place(shell(lathe([[0.19, 0.02], [0.192, -0.06], [0.155, -0.28], [0.108, -0.45]], 24), silver, navy), leg, 0, 0, 0, 0, 0, 0, [1, 1, 0.8]);
     place(mesh(new THREE.SphereGeometry(0.058, 12, 10), navyF), leg, 0, -0.49, 0);
     const shin = joint(R ? 'shinR' : 'shinL', leg, 0, -0.5, 0);
     j[R ? 'shinR' : 'shinL'] = shin;
@@ -271,7 +273,7 @@ export function buildDullahan(variant = 0) {
     place(mesh(new THREE.SphereGeometry(0.06, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), gold), shin, 0, 0.0, 0.07, Math.PI / 2, 0, 0, [1, 1, 0.6]);
     place(mesh(new THREE.ConeGeometry(0.07, 0.36, 6), gold), shin, 0, 0.17, 0.105, -0.12, 0, 0, [1, 1, 0.5]);
     // すね当て（裾が広がる）
-    place(shell(lathe([[0.118, 0.0], [0.116, -0.1], [0.112, -0.23], [0.078, -0.42], [0.07, -0.52], [0.074, -0.57]], 24), silver, navy), shin, 0, 0, -0.015, 0, 0, 0, [1, 1, 1.22]);
+    place(shell(lathe([[0.136, 0.02], [0.122, -0.08], [0.114, -0.23], [0.078, -0.42], [0.07, -0.52], [0.074, -0.57]], 24), silver, navy), shin, 0, 0, -0.015, 0, 0, 0, [1, 1, 1.22]);
     place(mesh(new THREE.ConeGeometry(0.04, 0.12, 4), silver), shin, 0, -0.02, 0.095, Math.PI, 0, 0, [1, 1, 0.4]);
     // 浮いた鉄靴（重ね板と金の底）
     const foot = new THREE.Group();
