@@ -160,7 +160,7 @@ export function glowLining({ c1 = 0x5b4dff, c2 = 0xc05cff, c3 = 0xff7ad8, line =
         float k = caustic(p, time * 0.5);
         vec3 col = mix(c1, c2, smoothstep(0.1, 0.8, vUv.y));
         col = mix(col, c3, smoothstep(0.82, 1.0, vUv.y));
-        col += line * k * 0.6;
+        col += line * (1.0 - k) * 0.55; // 濃い地に明るい網目
         col *= bright;
         col = mix(col, flash.rgb, flash.a);
         gl_FragColor = vec4(col, 1.0);

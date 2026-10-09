@@ -1,0 +1,91 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>closeup compare</title>
+<style>
+html,body{margin:0;background:#222;font-family:sans-serif;color:#ddd}
+#out{display:block;max-width:100vw;max-height:92vh}
+#lbl{padding:4px 8px;font-size:12px}
+</style>
+<script type="importmap">{"imports":{"three":"../node_modules/three/build/three.module.js","three/addons/":"../node_modules/three/examples/jsm/"}}</script>
+</head><body><div id="lbl"></div><canvas id="out"></canvas>
+<script type="module">
+// 参考画像の一部（顔など）と、同じ構図で描いたモデルを左右に並べた1枚の画像を作る。
+//   closeup.html?c=illumine&s=face        → 画面に表示
+//   await shoot('名前')                    → dev/out/名前.png に保存（開発サーバーのみ）
+// 構図は SHOTS で定義。URL の cx, cy, w, yaw で一時的に上書きできる。
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { CHARS } from '../src/chars/index.js';
+import { applyPose } from '../src/models/rig.js';
+
+// ref: 参考画像番号 / crop: 参考画像の切り抜き [x, y, w, h]（px）
+// cx, cy: モデル側で画面中央に来る位置 / w: 画面の横幅（ワールド単位）/ yaw: モデルの向き
+const ARMS_OUT = { armR: [0.05, 0, -0.95], armL: [0.05, 0, 0.95] };
+const SHOTS = {
+  illumine: {
+    face: { ref: 7, crop: [760, 280, 380, 340], cx: 0, cy: 1.555, w: 0.47, yaw: 0, pose: ARMS_OUT },
+    head: { ref: 7, crop: [560, 60, 800, 640], cx: 0, cy: 1.635, w: 0.99, yaw: 0, pose: ARMS_OUT },
+    front: { ref: 7, crop: [0, 40, 1931, 1900], cx: 0.07, cy: 0.967, w: 2.25, yaw: 0, anim: 'idle', pw: 700 },
+    back: { ref: 10, crop: [0, 0, 2000, 1837], cx: 0.02, cy: 0.93, w: 2.5, yaw: Math.PI, anim: 'idle', pw: 700 },
+    side: { ref: 8, crop: [0, 0, 1511, 2000], cx: 0.3, cy: 0.98, w: 1.76, yaw: -Math.PI / 2, anim: 'idle', pw: 620 },
+  },
+};
+
+const q = new URLSearchParams(location.search);
+const id = q.get('c') || 'illumine';
+const def = CHARS[id];
+const gl = document.createElement('canvas');
+const r = new THREE.WebGLRenderer({ canvas: gl, antialias: true, preserveDrawingBuffer: true });
+r.setPixelRatio(1);
+r.toneMapping = THREE.NeutralToneMapping;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xe6dcae);
+scene.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xfff8e8, 0x807050, 1.2));
+const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(-3, 5, 6); scene.add(key);
+const fill = new THREE.DirectionalLight(0xfff0d0, 0.6); fill.position.set(4, 2, 3); scene.add(fill);
+const m = def.buildModel(+(q.get('v') || 0));
+scene.add(m.root, ...m.worldObjects);
+const out = document.getElementById('out');
+const g = out.getContext('2d');
+const FOV = 10;
+const imgs = {};
+
+async function draw(sname) {
+  const shot = { ...SHOTS[id][sname] };
+  if (sname === (q.get('s') || 'face')) for (const k of ['cx', 'cy', 'w', 'yaw']) if (q.get(k) !== null) shot[k] = +q.get(k);
+  const PW = shot.pw || 800, PH = Math.round(PW * shot.crop[3] / shot.crop[2]);
+  r.setSize(PW, PH, false);
+  m.root.rotation.y = shot.yaw;
+  const pose = q.get('pose') ? def.anims[q.get('pose')](0) : (shot.anim ? def.anims[shot.anim](0) : (shot.pose || {}));
+  applyPose(m.rig, {}, 1);
+  applyPose(m.rig, pose, 1);
+  for (let i = 0; i < 180; i++) m.update(1 / 60, { vx: 0, vy: 0, air: false, snap: i === 0 });
+  const cam = new THREE.PerspectiveCamera(FOV, PW / PH, 0.1, 80);
+  const d = (shot.w * PH / PW / 2) / Math.tan((FOV / 2) * Math.PI / 180);
+  cam.position.set(shot.cx, shot.cy, d);
+  cam.lookAt(shot.cx, shot.cy, 0);
+  // 画面が隠れていても確実に読めるよう fetch + createImageBitmap を使う
+  const img = imgs[shot.ref] || (imgs[shot.ref] = await createImageBitmap(await (await fetch(`refs/${shot.ref}.jpg`)).blob()));
+  r.render(scene, cam);
+  out.width = PW * 2 + 12; out.height = PH + 44;
+  g.fillStyle = '#1c1c22'; g.fillRect(0, 0, out.width, out.height);
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(img, ...shot.crop, 0, 44, PW, PH);
+  g.drawImage(gl, PW + 12, 44, PW, PH);
+  g.fillStyle = '#fff'; g.font = 'bold 26px sans-serif';
+  g.fillText('REFERENCE (目標)', 14, 32);
+  g.fillText('RENDER (現在のモデル)', PW + 26, 32);
+  document.getElementById('lbl').textContent = `${id} / ${sname}  ` + JSON.stringify(shot);
+}
+async function save(name) {
+  const blob = await new Promise((res) => out.toBlob(res, 'image/png'));
+  const resp = await fetch('/__shot/' + name + '.png', { method: 'POST', body: blob });
+  return resp.status + ' ' + (await resp.text());
+}
+await draw(q.get('s') || 'face');
+window.model = m;
+window.shoot = async (name, sname = q.get('s') || 'face') => { await draw(sname); return save(name || `${id}_${sname}`); };
+// 全構図をまとめて保存: await shootAll('v12') → dev/out/illumine_face_v12.png など
+window.shootAll = async (suffix) => { const res = []; for (const sname of Object.keys(SHOTS[id])) { await draw(sname); res.push(await save(`${id}_${sname}_${suffix}`)); } return res; };
+window.ready = true;
+</script></body></html>

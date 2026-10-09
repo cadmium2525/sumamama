@@ -33,6 +33,18 @@ http.createServer((req, res) => {
     if (!p.startsWith(base)) { res.writeHead(404); res.end('404'); return; }
     p = '/' + p.slice(base.length);
   }
+  // 開発用: 比較画像を dev/out/ に保存する（dev/closeup.html の shoot() から）
+  const shot = /^\/__shot\/([\w-]+\.png)$/.exec(p);
+  if (shot && req.method === 'POST' && root === __dirname) {
+    const chunks = [];
+    req.on('data', (c) => chunks.push(c));
+    req.on('end', () => {
+      fs.mkdirSync(path.join(__dirname, 'dev', 'out'), { recursive: true });
+      fs.writeFileSync(path.join(__dirname, 'dev', 'out', shot[1]), Buffer.concat(chunks));
+      res.writeHead(200); res.end('dev/out/' + shot[1]);
+    });
+    return;
+  }
   if (p.endsWith('/')) p += 'index.html';
   const file = path.join(root, p);
   if (!file.startsWith(root)) { res.writeHead(403); res.end(); return; }
