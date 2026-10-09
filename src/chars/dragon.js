@@ -7,7 +7,7 @@ import { audio } from '../audio.js';
 const hb = (f0, f1, x, y, r, dmg, ang, bkb, kbg, extra = {}) => ({ f: [f0, f1], x, y, r, dmg, ang, bkb, kbg, ...extra });
 
 // 基本姿勢: 膝を曲げて腰を落とし、鉤爪を前に構える（参考画像11）
-const DI = { by: -0.05, legR: [-0.85, 0, -0.45], shinR: [1.3, 0, 0], legL: [-0.8, 0, 0.45], shinL: [1.25, 0, 0], torso: [0.36, 0, 0], head: [-0.3, 0, 0], armR: [-0.25, 0, -0.95], foreR: [-0.75, 0, 0.55], armL: [-0.25, 0, 0.95], foreL: [-0.75, 0, -0.55], wisp: [0, 0.12, 0] };
+const DI = { by: -0.05, legR: [-0.85, 0, -0.45], shinR: [1.3, 0, 0], legL: [-0.8, 0, 0.45], shinL: [1.25, 0, 0], torso: [0.36, 0, 0], head: [-0.3, 0, 0], armR: [-0.25, 0, -0.95], foreR: [-0.75, 0, 0.55], armL: [-0.25, 0, 0.95], foreL: [-0.75, 0, -0.55], wisp: [0, 0.36, 0] };
 const AIR = { legR: [-0.8, 0, -0.2], shinR: [1.2, 0, 0], legL: [-0.5, 0, 0.2], shinL: [1.0, 0, 0], armR: [-0.6, 0, -0.8], foreR: [-0.8, 0, 0], armL: [-0.6, 0, 0.8], foreL: [-0.8, 0, 0], torso: [0.15, 0, 0], head: [-0.2, 0, 0] };
 const TUCK = { legR: [-1.3, 0, -0.2], shinR: [1.8, 0, 0], legL: [-1.2, 0, 0.2], shinL: [1.7, 0, 0] };
 const PUNCH_R = { ...DI, armR: [-1.55, 0, -0.05], foreR: [0, 0, 0], torso: [0.28, 0.45, 0], bz: 0.15 };

@@ -29,7 +29,8 @@ export function buildDullahan(variant = 0) {
   const shieldFace = new THREE.MeshStandardMaterial({ map: runeShieldTex(P.goldHex, P.ink), metalness: 0.6, roughness: 0.4, envMapIntensity: 0.9, emissive: 0x3a3008 });
   const eyeM = basic(P.eye, 1.15);
   const gemM = metal(P.gem, { rough: 0.1, metal: 0.3, env: 1.4, emissive: new THREE.Color(P.gem).multiplyScalar(0.25) });
-  const flashMats = [silver, gold, goldD, goldEngr, shieldFace, bladeM];
+  const silverFlat = silver.clone(); silverFlat.flatShading = true; // 板を組んだ面の角を見せる
+  const flashMats = [silverFlat, silver, gold, goldD, goldEngr, shieldFace, bladeM];
   const baseEmissive = flashMats.map((m) => m.emissive.clone());
 
   const body = joint('body', root, 0, DULLAHAN_HIP, 0); j.body = body;
@@ -122,12 +123,12 @@ export function buildDullahan(variant = 0) {
   place(shell(lathe([[0.13, -0.02], [0.152, 0.05], [0.16, 0.13], [0.155, 0.185]], 28, Math.PI * 0.24, Math.PI * 1.52), silver, navy), hs, 0, 0, 0, 0, 0, 0, [0.96, 1, 1.05]);
   place(mesh(new THREE.SphereGeometry(0.128, 18, 14), basic(0x0a0608)), hs, 0, 0.11, 0.0);
   // 炎の瞳（横に広い三日月形の光）
-  place(mesh(new THREE.SphereGeometry(0.03, 14, 10), eyeM), hs, 0, 0.125, 0.112, 0, 0, 0, [1.3, 0.8, 0.5]);
-  place(mesh(new THREE.SphereGeometry(0.016, 10, 8), basic(0xffd040, 1.3)), hs, 0, 0.12, 0.126, 0, 0, 0, [1.0, 0.5, 0.5]);
+  place(mesh(new THREE.SphereGeometry(0.03, 14, 10), eyeM), hs, 0, 0.138, 0.112, 0, 0, 0, [1.9, 0.8, 0.5]);
+  place(mesh(new THREE.SphereGeometry(0.016, 10, 8), basic(0xffd040, 1.3)), hs, 0, 0.133, 0.126, 0, 0, 0, [1.3, 0.5, 0.5]);
   const glowTex = canvasTex(64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
   const eyeGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: P.eye, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
   eyeGlow.scale.setScalar(0.16);
-  eyeGlow.position.set(0, 0.124, 0.14);
+  eyeGlow.position.set(0, 0.136, 0.14);
   eyeGlow.userData.keep = true;
   hs.add(eyeGlow);
   // 金の額飾り（一枚の扇形の貝殻。浅い溝の畝が額いっぱいに広がる）
@@ -144,10 +145,11 @@ export function buildDullahan(variant = 0) {
   });
   place(mesh(browGeo, goldD), hs, 0, 0, 0);
   // 金の牙（額から顎の下まで垂れる長い格子。中央が最も長い）
-  const fangs = [[-0.105, 0.2, 0.108, 0.5, 0.15], [-0.058, 0.26, 0.142, 0.25, 0.135], [0, 0.3, 0.154, 0, 0.112], [0.058, 0.26, 0.142, -0.25, 0.135], [0.105, 0.2, 0.108, -0.5, 0.15]];
+  // 先端が襟に埋もれない長さにする（中央が最も下まで届く）
+  const fangs = [[-0.105, 0.15, 0.108, 0.5, 0.15], [-0.058, 0.18, 0.142, 0.25, 0.135], [0, 0.19, 0.154, 0, 0.105], [0.058, 0.18, 0.142, -0.25, 0.135], [0.105, 0.15, 0.108, -0.5, 0.15]];
   for (const [x, len, z, ry, top] of fangs) {
-    const f = mesh(new THREE.ConeGeometry(0.026, len, 4), gold);
-    place(f, hs, x * (1 - 0.12), top - len / 2, z, Math.PI + 0.1, ry + Math.PI / 4, x * 1.3, [1, 1, 0.5]);
+    const f = mesh(new THREE.ConeGeometry(0.034, len, 4), gold);
+    place(f, hs, x * (1 - 0.12), top - len / 2, z, Math.PI + 0.1, ry + Math.PI / 4, x * 1.6, [1, 1, 0.5]);
   }
   // 頬当ての下縁の金縁（前は開く）
   place(mesh(new THREE.TorusGeometry(0.134, 0.014, 6, 28, Math.PI * 1.52), gold), hs, 0, -0.02, 0, Math.PI / 2, 0, Math.PI * 0.74, [0.96, 1.05, 1]);
@@ -267,7 +269,7 @@ export function buildDullahan(variant = 0) {
     j[R ? 'legR' : 'legL'] = leg;
     place(mesh(new THREE.SphereGeometry(0.055, 12, 10), navyF), leg, 0, -0.05, 0);
     // 腿当て（浮いた筒）
-    place(shell(lathe([[0.19, 0.02], [0.192, -0.06], [0.155, -0.28], [0.108, -0.45]], 24), silver, navy), leg, 0, 0, 0, 0, 0, 0, [1, 1, 0.8]);
+    { const g = lathe([[0.168, 0.02], [0.172, -0.06], [0.142, -0.28], [0.106, -0.45]], 6); g.rotateY(Math.PI / 6); place(shell(g, silver, navy), leg, 0, 0, 0, 0, 0, 0, [1, 1, 0.78]); }
     place(mesh(new THREE.SphereGeometry(0.058, 12, 10), navyF), leg, 0, -0.49, 0);
     const shin = joint(R ? 'shinR' : 'shinL', leg, 0, -0.5, 0);
     j[R ? 'shinR' : 'shinL'] = shin;
