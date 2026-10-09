@@ -274,8 +274,8 @@ export function buildIllumine(variant = 0) {
   const sleeveGeo = paramGeo(40, 12, (u, v, p) => {
     const phi = u * Math.PI * 2;
     // 丸くふくらんだ釣鐘（裾は丸い波）
-    const r = 0.026 + 0.225 * Math.pow(Math.sin(v * 2.1), 0.85) + 0.035 * Math.cos(phi * 5) * v * v;
-    const y = -0.12 - 0.5 * v + 0.045 * Math.cos(phi * 5) * v * v * v;
+    const r = 0.05 + 0.205 * Math.pow(Math.sin(v * 2.1), 0.85) + 0.035 * Math.cos(phi * 5) * v * v;
+    const y = 0.03 - 0.5 * v + 0.045 * Math.cos(phi * 5) * v * v * v; // 原点は手首。袖の口元が前腕の先を包む
     p.set(Math.sin(phi) * r, y, Math.cos(phi) * r);
   });
   const trails = {};
@@ -287,15 +287,17 @@ export function buildIllumine(variant = 0) {
     place(mesh(taperCapsule(0.22, 0.026, 0.021, 10), skin), arm, 0, 0, 0);
     const fore = joint(R ? 'foreR' : 'foreL', arm, 0, -0.22, 0);
     j[R ? 'foreR' : 'foreL'] = fore;
-    place(mesh(taperCapsule(0.14, 0.021, 0.019, 10), skin), fore, 0, 0, 0);
+    place(mesh(taperCapsule(0.18, 0.021, 0.019, 10), skin), fore, 0, 0, 0);
+    // 前腕を包んで手首へ向かって広がる袖の筒（腕から袖へ途切れずにつながる）
+    place(mesh(new THREE.CylinderGeometry(0.023, 0.054, 0.17, 14, 1, true), cloth), fore, 0, -0.085, 0);
     const sl = new THREE.Group(); sl.userData.keep = true;
-    place(sl, fore, 0, 0, 0, 0.3, 0, s * 0.75);
+    place(sl, fore, 0, -0.16, 0, 0.3, 0, s * 0.5); // 手首を支点に外へ開く
     place(shell(sleeveGeo, cloth, lining), sl, 0, 0, 0);
     // 袖の奥をふさぐ（腕の先や穴が見えないように）
-    place(mesh(new THREE.CircleGeometry(0.06, 16), basic(P.glow.c2, 0.9, { side: THREE.DoubleSide })), sl, 0, -0.2, 0, Math.PI / 2, 0, 0);
+    place(mesh(new THREE.CircleGeometry(0.06, 16), basic(P.glow.c2, 0.9, { side: THREE.DoubleSide })), sl, 0, -0.06, 0, Math.PI / 2, 0, 0);
     sleeves.push(sl);
     const a = new THREE.Object3D(); a.position.set(0, -0.05, 0); fore.add(a);
-    const b = new THREE.Object3D(); b.position.set(0, -0.58, 0); fore.add(b);
+    const b = new THREE.Object3D(); b.position.set(0, -0.6, 0); fore.add(b);
     trails[R ? 'handR' : 'handL'] = [a, b];
   }
 
