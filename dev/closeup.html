@@ -29,6 +29,18 @@ const SHOTS = {
     arm: { ref: 7, crop: [1000, 520, 700, 620], cx: 0.42, cy: 1.02, w: 0.82, yaw: 0, anim: 'idle' },
     side: { ref: 8, crop: [0, 0, 1511, 2000], cx: 0.3, cy: 0.98, w: 1.76, yaw: -Math.PI / 2, anim: 'idle', pw: 620 },
   },
+  dullahan: {
+    face: { ref: 3, crop: [540, 200, 340, 360], cx: 0.03, cy: 2.02, w: 0.46, yaw: 0, anim: 'idle' },
+    front: { ref: 3, crop: [0, 0, 1377, 2000], cx: 0, cy: 1.186, w: 1.855, yaw: 0, anim: 'idle', pw: 520 },
+    side: { ref: 4, crop: [0, 0, 1155, 2000], cx: -0.06, cy: 1.24, w: 1.71, yaw: Math.PI / 2, anim: 'idle', pw: 480 },
+    back: { ref: 5, crop: [0, 0, 1098, 2000], cx: 0, cy: 1.3, w: 1.68, yaw: Math.PI, anim: 'idle', pw: 460 },
+  },
+  dragon: {
+    face: { ref: 11, crop: [840, 130, 310, 300], cx: 0, cy: 2.06, w: 0.74, yaw: 0, anim: 'idle' },
+    front: { ref: 11, crop: [0, 0, 2000, 1282], cx: 0, cy: 1.28, w: 4.78, yaw: 0, anim: 'idle', pw: 800 },
+    side: { ref: 14, crop: [0, 0, 2000, 1343], cx: -0.12, cy: 1.3, w: 4.78, yaw: Math.PI / 2, anim: 'idle', pw: 800 },
+    back: { ref: 13, crop: [0, 0, 2000, 1226], cx: 0, cy: 1.21, w: 4.78, yaw: Math.PI, anim: 'idle', pw: 800 },
+  },
 };
 
 const q = new URLSearchParams(location.search);
@@ -58,8 +70,11 @@ async function draw(sname) {
   r.setSize(PW, PH, false);
   m.root.rotation.y = shot.yaw;
   const pose = q.get('pose') ? def.anims[q.get('pose')](0) : (shot.anim ? def.anims[shot.anim](0) : (shot.pose || {}));
+  // ov=JSON で姿勢の一部を上書きして試せる
+  const ov = window.ov || (q.get('ov') ? JSON.parse(q.get('ov')) : null);
   applyPose(m.rig, {}, 1);
-  applyPose(m.rig, pose, 1);
+  applyPose(m.rig, ov ? { ...pose, ...ov } : pose, 1);
+  if (m.shadow) m.shadow.visible = false;
   for (let i = 0; i < 180; i++) m.update(1 / 60, { vx: 0, vy: 0, air: false, snap: i === 0 });
   const cam = new THREE.PerspectiveCamera(FOV, PW / PH, 0.1, 80);
   const d = (shot.w * PH / PW / 2) / Math.tan((FOV / 2) * Math.PI / 180);
