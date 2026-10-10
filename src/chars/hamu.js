@@ -10,7 +10,7 @@ const GAS = 0xb4c64a, GAS2 = 0xe8ea90;
 const PI = Math.PI;
 
 // 待機: 腕を左右に張って構える
-const HI = { legR: [-0.3, 0, -0.14], shinR: [0.5, 0, 0], legL: [-0.2, 0, 0.14], shinL: [0.4, 0, 0], by: -0.015, torso: [0.06, 0, 0], head: [-0.04, 0, 0], armR: [-0.1, 0, -0.72], foreR: [-0.45, 0, 0.3], armL: [-0.1, 0, 0.72], foreL: [-0.45, 0, -0.3] };
+const HI = { legR: [-0.3, 0, -0.14], shinR: [0.5, 0, 0], legL: [-0.2, 0, 0.14], shinL: [0.4, 0, 0], by: -0.015, torso: [0.06, 0, 0], head: [-0.04, 0, 0], armR: [-0.12, 0, -0.62], foreR: [-0.3, 0, 0.1], armL: [-0.12, 0, 0.62], foreL: [-0.3, 0, -0.1] };
 const AIR = { legR: [-0.7, 0, -0.14], shinR: [0.9, 0, 0], legL: [-0.2, 0, 0.14], shinL: [0.6, 0, 0], armR: [-0.4, 0, -0.9], foreR: [-0.7, 0, 0], armL: [-0.4, 0, 0.9], foreL: [-0.7, 0, 0], torso: [0.1, 0, 0], earR: [-0.3, 0, 0], earL: [-0.3, 0, 0] };
 const TUCK = { legR: [-1.2, 0, -0.14], shinR: [1.5, 0, 0], legL: [-1.0, 0, 0.14], shinL: [1.4, 0, 0] };
 // 右・左のパンチ（腰を入れて突き出す）
@@ -83,7 +83,7 @@ const moves = {
     total: 46, smash: true, charge: { f: 6, max: 60 }, trail: 'handR', trailF: [12, 18], sfx: [13, 'whoosh', 1.0],
     hit: [hb(14, 17, 1.15, 0.95, 0.56, 17, 38, 38, 102), hb(14, 17, 0.55, 0.95, 0.48, 15, 38, 36, 100)],
     onFrame(ft, f) { if (f === 14) { ft.vx = ft.facing * 0.06; ft.battle.effects.dust(ft.x, ft.y, 4, -ft.facing); } },
-    anim: [[0, HI], [6, { ...WIND_R, armR: [0.9, 0, -0.7], torso: [-0.1, -0.8, 0], by: -0.04, legR: [0.3, 0, -0.14], legL: [-0.6, 0, 0.14], shinL: [0.8, 0, 0] }], [13, { ...WIND_R, armR: [1.0, 0, -0.7], torso: [-0.12, -0.9, 0], by: -0.05, legR: [0.3, 0, -0.14], legL: [-0.6, 0, 0.14], shinL: [0.8, 0, 0] }], [15, { ...PUNCH_R, torso: [0.35, 0.8, 0], bz: 0.3, by: -0.04, legR: [0.5, 0, -0.14], shinR: [0.3, 0, 0], legL: [-0.9, 0, 0.14], shinL: [0.9, 0, 0] }], [28, { ...PUNCH_R, torso: [0.3, 0.7, 0], bz: 0.25, by: -0.035, legR: [0.5, 0, -0.14], legL: [-0.9, 0, 0.14], shinL: [0.9, 0, 0] }], [46, HI]],
+    anim: [[0, HI], [6, { ...WIND_R, armR: [0.9, 0, -0.7], torso: [-0.1, -0.8, 0], by: -0.04, legR: [0.3, 0, -0.14], legL: [-0.6, 0, 0.14], shinL: [0.8, 0, 0] }], [13, { ...WIND_R, armR: [1.0, 0, -0.7], torso: [-0.12, -0.9, 0], by: -0.05, legR: [0.3, 0, -0.14], legL: [-0.6, 0, 0.14], shinL: [0.8, 0, 0] }], [15, { ...PUNCH_R, torso: [0.35, 0.8, 0], bz: 0.3, by: 0.1, legR: [0.5, 0, -0.14], shinR: [0.6, 0, 0], legL: [-0.9, 0, 0.14], shinL: [0.9, 0, 0] }], [28, { ...PUNCH_R, torso: [0.3, 0.7, 0], bz: 0.25, by: 0.1, legR: [0.5, 0, -0.14], shinR: [0.6, 0, 0], legL: [-0.9, 0, 0.14], shinL: [0.9, 0, 0] }], [46, HI]],
   },
   usmash: {
     // 両の拳を突き上げて跳ねる
@@ -166,7 +166,7 @@ const moves = {
       } else { ft.vx *= 0.85; if (f === 28) audio.whoosh(0.9); }
     },
     anim: (() => {
-      const run = { legR: [0.5, 0, -0.14], shinR: [0.5, 0, 0], legL: [-0.8, 0, 0.14], shinL: [0.7, 0, 0], by: -0.04, bz: 0.15 };
+      const run = { legR: [0.5, 0, -0.14], shinR: [0.7, 0, 0], legL: [-0.8, 0, 0.14], shinL: [0.7, 0, 0], by: 0.1, bz: 0.15 };
       const k = [[0, HI], [7, { ...WIND_R, by: -0.05 }]];
       for (let i = 0; i < 4; i++) { k.push([9 + i * 4, { ...(i % 2 ? PUNCH_L : PUNCH_R), ...run }]); k.push([11 + i * 4, { ...(i % 2 ? PUNCH_R : PUNCH_L), ...run, armR: [-0.8, 0, -0.3], armL: [-0.8, 0, 0.3], foreR: [-1.6, 0, 0], foreL: [-1.6, 0, 0] }]); }
       k.push([26, { ...WIND_R, ...run, armR: [1.0, 0, -0.7], torso: [-0.1, -0.9, 0] }], [29, { ...PUNCH_R, ...run, torso: [0.35, 0.85, 0], bz: 0.32 }], [38, { ...PUNCH_R, ...run, torso: [0.3, 0.75, 0], bz: 0.28 }], [52, HI]);
