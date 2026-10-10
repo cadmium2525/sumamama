@@ -118,6 +118,12 @@ class AudioEngine {
     this.noise(1.2, { vol: 0.5, freq: 1800, type: 'lowpass', slide: 80 });
     this.tone(60, 1.0, { type: 'sine', vol: 0.6, slide: 25 });
   }
+  fart(power = 0.5) {
+    const d = 0.18 + power * 0.35;
+    this.tone(95 + power * 20, d, { type: 'sawtooth', vol: 0.16, slide: 55 });
+    this.tone(70, d, { type: 'square', vol: 0.07, slide: 48 });
+    this.noise(d, { vol: 0.12, freq: 260, type: 'lowpass', slide: 120 });
+  }
   fire() {
     this.noise(0.45, { vol: 0.22, freq: 700, type: 'lowpass', slide: 250 });
     this.noise(0.3, { vol: 0.1, freq: 2600, q: 0.6, slide: 900 });

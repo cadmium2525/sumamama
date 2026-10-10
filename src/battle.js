@@ -52,6 +52,21 @@ class Projectile {
       battle.scene.add(g);
       return;
     }
+    if (o.kind === 'gas') {
+      // ガスの雲（ゆっくり広がりながら漂う。当たるとふらふらになる）
+      const g = new THREE.Group();
+      this.puffs = [];
+      for (let i = 0; i < 5; i++) {
+        const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTexture(), color: i % 2 ? (o.core || 0xe8e890) : o.color, transparent: true, opacity: 0.7, depthWrite: false }));
+        s.userData = { a: i * 1.26, d: i ? 0.45 : 0, k: i ? rand(0.6, 0.85) : 1.1 };
+        this.puffs.push(s); g.add(s);
+      }
+      g.position.set(o.x, o.y, 0.3);
+      this.maxLife = o.life;
+      this.mesh = g;
+      battle.scene.add(g);
+      return;
+    }
     if (o.kind === 'fswave') {
       this.mesh = makeSolarWave(o.color, o.core);
       this.mesh.position.set(o.x, o.y, 0.3);
@@ -81,6 +96,13 @@ class Projectile {
       this.vx *= 0.94; this.vy *= 0.94;
       this.r = Math.min(this.rMax || 0.7, this.r + 0.03);
       if (this.age % 3 === 0) this.b.effects.spawn({ x: this.x, y: this.y + 0.1, z: 0.2, vy: 0.015, life: 18, size: this.r * 0.8, size1: 0.1, color: 0x3a2a2a, additive: false, opacity: 0.35 });
+      if (this.life <= 0 || insideSolid(this.x, this.y)) this.kill(false);
+      return;
+    }
+    if (this.kind === 'gas') {
+      this.vx *= this.drag || 0.965; this.vy *= 0.94;
+      this.r = Math.min(this.rMax || 0.8, this.r + 0.012);
+      if (this.age % 4 === 0) this.b.effects.spawn({ x: this.x + rand(-this.r, this.r) * 0.6, y: this.y + rand(-this.r, this.r) * 0.6, z: 0.25, vy: 0.012, life: 22, size: this.r * 0.7, size1: this.r * 1.1, color: this.color, additive: false, opacity: 0.3 });
       if (this.life <= 0 || insideSolid(this.x, this.y)) this.kill(false);
       return;
     }
@@ -115,6 +137,16 @@ class Projectile {
       this.outer.material.opacity = 0.9 * Math.max(0, 1 - t * t);
       this.inner.material.opacity = 0.8 * Math.max(0, 1 - t);
       this.outer.material.color.setRGB(1, 0.2 + 0.35 * (1 - t), 0.03);
+      return;
+    }
+    if (this.kind === 'gas') {
+      const t = this.age / this.maxLife, fade = Math.min(1, this.age / 4) * Math.max(0, 1 - t * t);
+      for (const s of this.puffs) {
+        const u = s.userData, a = u.a + this.age * 0.05;
+        s.position.set(Math.cos(a) * u.d * this.r, Math.sin(a) * u.d * this.r, 0);
+        s.scale.setScalar(this.r * 2.6 * u.k);
+        s.material.opacity = 0.7 * fade;
+      }
       return;
     }
     if (this.kind === 'arrow') return;
@@ -508,11 +540,35 @@ export class Battle {
         if (d.inWindow('counter')) { this.triggerCounter(d, p.owner, p.dmg); p.kill(true); break; }
         const dir = sign(p.vx) || 1;
         if (d.state === 'shield' || d.state === 'shieldstun') this.shieldHit(p.owner, d, h, p.dmg, p.x, p.y, dir);
+        else if (p.stun && this.canStun(d)) this.applyStun(p.owner, d, p);
         else this.applyHit(p.owner, d, h, p.x, p.y, dir, p.dmg);
         p.kill(false);
         break;
       }
     }
+  }
+
+  // ふらふら（短時間スタン）にできるのは、地上にいて、つかみ・アーマー中でなく、直前にスタンしていない相手だけ。
+  // それ以外は弱いふっとばしになる（スタンの連続で動けなくなるのを防ぐ）
+  canStun(d) {
+    if (!d.grounded || d.inWindow('armor')) return false;
+    if (d.state === 'grabbed' || d.state === 'trapped' || d.state === 'dizzy' || d.state === 'shieldbreak' || d.state === 'ledge') return false;
+    return this.frame >= (d.stunFreeAt || 0);
+  }
+  applyStun(a, d, p) {
+    d.damage = Math.min(999, d.damage + p.dmg);
+    a.stats.dealt += p.dmg; d.stats.taken += p.dmg;
+    d.lastHitInfo = { move: 'projectile', frame: this.frame, dmg: d.damage };
+    this.app.hud.bump(d.slot);
+    if (d.grabbing) d.releaseGrabQuiet();
+    d.setState('dizzy');
+    d.dizzyT = p.stun;
+    d.stunFreeAt = this.frame + p.stun + 150;
+    d.vx *= 0.3; d.kx = d.ky = 0;
+    d.flashT = 8; d.hitlag = 6;
+    this.effects.ring(d.x, d.y + d.height * 0.6, p.color, 2.2, 14);
+    for (let i = 0; i < 6; i++) this.effects.smoke(d.x + rand(-0.4, 0.4), d.y + d.height * rand(0.3, 0.9), p.color);
+    audio.hit(0.3);
   }
 
   spawnProjectile(owner, o) {

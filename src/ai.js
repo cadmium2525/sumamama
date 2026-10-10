@@ -271,7 +271,7 @@ export class CpuController {
       return;
     }
     // 飛び道具
-    if (noc && me.def.id !== 'doros' && adx > 5 && chance(0.18) && Math.abs(dy) < 1.5) {
+    if (noc && me.def.id !== 'doros' && me.def.id !== 'hamu' && adx > 5 && chance(0.18) && Math.abs(dy) < 1.5) {
       me.facing === dir ? (this.sx = 0) : (this.sx = dir * 0.3);
       this.press('special', chance(0.4) ? randi(10, 50) : 1);
       this.busy = 30;
@@ -283,6 +283,12 @@ export class CpuController {
       if (helplessOp && adx < 2.2 && adx > 0.8) { this.sx = me.facing === dir ? 0 : dir * 0.3; this.sy = 0; this.press('special'); this.busy = 110; return; }
       if (adx > 2 && adx < 4.6 && chance(0.2)) { this.sx = dir; this.sy = 0; this.press('special'); this.busy = 45; return; }
       if (adx > 1.6 && adx < 4 && chance(0.1)) { this.sx = 0; this.sy = -1; this.press('special'); this.busy = 50; this.after(() => { this.sy = 0; }, 3); return; }
+    }
+    // ハム: 中距離でガスを飛ばし、ふらふらの相手にはスマッシュを叩き込む
+    if (me.def.id === 'hamu' && me.grounded && Math.abs(dy) < 1) {
+      if (op.state === 'dizzy' && adx < 1.3) { this.sx = dir; this.sy = 0; this.press('smash', randi(8, 22)); this.busy = 40; return; }
+      if (op.state !== 'dizzy' && op.grounded && adx > 1.6 && adx < 4.4 && chance(0.4)) { this.sx = me.facing === dir ? 0 : dir * 0.3; this.sy = 0; this.press('special'); this.busy = 40; return; }
+      if (adx > 2.2 && adx < 4 && chance(0.06)) { this.sx = dir; this.sy = 0; this.press('special'); this.busy = 40; return; }
     }
     // ドラゴン: 中距離で火炎ブレスを吐き続ける
     if (me.def.id === 'dragon' && adx > 1.2 && adx < 3.4 && Math.abs(dy) < 1 && chance(0.22)) {
