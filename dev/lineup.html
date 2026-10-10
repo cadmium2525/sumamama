@@ -1,0 +1,58 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>lineup</title>
+<style>html,body{margin:0;background:#222}#out{display:block;max-width:100vw;max-height:96vh}</style>
+<script type="importmap">{"imports":{"three":"../node_modules/three/build/three.module.js","three/addons/":"../node_modules/three/examples/jsm/"}}</script>
+</head><body><canvas id="out"></canvas>
+<script type="module">
+// 全ファイターを待機姿勢で横に並べ、身長（足元から頭頂まで）を比べる。
+//   await shoot('名前') → dev/out/名前.png に保存
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { CHAR_LIST } from '../src/chars/index.js';
+import { applyPose } from '../src/models/rig.js';
+
+const W = 1400, H = 700, SPAN = 12;
+const out = document.getElementById('out');
+const r = new THREE.WebGLRenderer({ canvas: out, antialias: true, preserveDrawingBuffer: true });
+r.setPixelRatio(1); r.setSize(W, H, false);
+r.toneMapping = THREE.NeutralToneMapping;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xe6dcae);
+scene.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xfff8e8, 0x807050, 1.2));
+const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(-3, 5, 6); scene.add(key);
+// 0.5刻みの目盛り
+for (let y = 0; y <= 3.5; y += 0.5) {
+  const l = new THREE.Mesh(new THREE.BoxGeometry(SPAN, y % 1 ? 0.006 : 0.014, 0.01), new THREE.MeshBasicMaterial({ color: y ? 0x907850 : 0x403020 }));
+  l.position.set(0, y, -1.5); scene.add(l);
+}
+const yaw = +(new URLSearchParams(location.search).get('yaw') || 0.5);
+window.heights = {};
+CHAR_LIST.forEach((def, i) => {
+  const m = def.buildModel(0);
+  m.root.position.x = (i - (CHAR_LIST.length - 1) / 2) * (SPAN / CHAR_LIST.length);
+  m.root.rotation.y = yaw;
+  scene.add(m.root, ...m.worldObjects);
+  applyPose(m.rig, {}, 1);
+  applyPose(m.rig, def.anims.idle(0), 1);
+  if (m.shadow) m.shadow.visible = false;
+  for (let k = 0; k < 120; k++) m.update(1 / 60, { vx: 0, vy: 0, air: false, snap: k === 0 });
+  m.root.updateMatrixWorld(true);
+  // 頭の関節だけの箱（翼やマントを除いた頭頂）と全体の箱
+  const all = new THREE.Box3().setFromObject(m.root);
+  const head = new THREE.Box3().setFromObject(m.rig.j.head);
+  window.heights[def.id] = { top: +all.max.y.toFixed(2), bottom: +all.min.y.toFixed(2), headTop: +head.max.y.toFixed(2), headBottom: +head.min.y.toFixed(2) };
+});
+const FOV = 10;
+const cam = new THREE.PerspectiveCamera(FOV, W / H, 0.1, 200);
+const d = (SPAN * H / W / 2) / Math.tan((FOV / 2) * Math.PI / 180);
+cam.position.set(0, 1.75, d); cam.lookAt(0, 1.75, 0);
+r.render(scene, cam);
+window.shoot = async (name = 'lineup') => {
+  r.render(scene, cam);
+  const blob = await new Promise((res) => out.toBlob(res, 'image/png'));
+  const resp = await fetch('/__shot/' + name + '.png', { method: 'POST', body: blob });
+  return resp.status + ' ' + (await resp.text());
+};
+window.ready = true;
+</script></body></html>

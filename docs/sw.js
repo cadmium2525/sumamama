@@ -1,7 +1,7 @@
 // サービスワーカー: 一度開けばオフラインでも遊べるようにキャッシュする
-const VERSION = '6844d79be3';
+const VERSION = 'bd8742c876';
 const CACHE = 'sumamama-' + VERSION;
-const PRECACHE = ["./","index.html","app.js?v=6844d79be3","style.css?v=6844d79be3","manifest.webmanifest","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon-maskable-512.png"];
+const PRECACHE = ["./","index.html","app.js?v=bd8742c876","style.css?v=bd8742c876","manifest.webmanifest","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon-maskable-512.png"];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
