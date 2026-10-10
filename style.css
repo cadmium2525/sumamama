@@ -74,14 +74,15 @@ button { font-family: var(--font); cursor: pointer; }
 #timer { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); font-size: 22px; color: #fff; text-shadow: 0 2px 0 #000, 0 0 10px #000; opacity: 0.85; }
 #hint { position: absolute; top: 16px; right: 18px; font-size: 11px; color: rgba(255,255,255,0.5); font-family: sans-serif; }
 #cards { position: absolute; left: 0; right: 0; bottom: 18px; display: flex; justify-content: center; gap: 6vw; }
-.card { position: relative; width: 250px; height: 104px; }
+.card { position: relative; width: 244px; height: 104px; }
 .card .bg { position: absolute; inset: 22px 0 0 0; border-radius: 14px; background: linear-gradient(135deg, color-mix(in srgb, var(--pc) 70%, #000) 0%, color-mix(in srgb, var(--pc) 35%, #000) 100%); border: 3px solid #000a; box-shadow: 0 4px 0 #0008; transform: skewX(-8deg); }
-.card img { position: absolute; left: 10px; bottom: 8px; width: 96px; height: 96px; border-radius: 50%; border: 3px solid #fff; background: #000; object-fit: cover; box-shadow: 0 3px 0 #0008; }
-.card .pct { position: absolute; right: 18px; bottom: 16px; font-size: 54px; font-weight: 900; font-style: italic; line-height: 1; -webkit-text-stroke: 3px #000; paint-order: stroke fill; transition: color .2s; }
+.card img { position: absolute; left: 8px; bottom: 8px; width: 88px; height: 88px; border-radius: 50%; border: 3px solid #fff; background: #000; object-fit: cover; box-shadow: 0 3px 0 #0008; }
+.card .pct { position: absolute; right: 16px; bottom: 23px; font-size: 44px; font-weight: 900; font-style: italic; line-height: 1; -webkit-text-stroke: 3px #000; paint-order: stroke fill; transition: color .2s; }
 .card .pct small { font-size: 0.45em; margin-left: 2px; }
-.card .nm { position: absolute; left: 116px; top: 30px; font-size: 13px; letter-spacing: 0.08em; text-shadow: 0 2px 0 #000; }
-.card .stocks { position: absolute; left: 116px; top: 50px; display: flex; gap: 4px; }
-.card .stocks i { width: 14px; height: 14px; border-radius: 50%; background: var(--cc); border: 2px solid #000; display: block; }
+/* 右側は上から 名前 / ダメージ / 残機 の3段。桁が増えても重ならない */
+.card .nm { position: absolute; left: 106px; right: 14px; top: 27px; font-size: 12px; line-height: 1; letter-spacing: 0.06em; text-shadow: 0 2px 0 #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card .stocks { position: absolute; left: 104px; right: 12px; bottom: 7px; display: flex; gap: 3px; }
+.card .stocks i { width: 11px; height: 11px; flex: none; border-radius: 50%; background: #fff; border: 2px solid #000; display: block; }
 .card .ptag { position: absolute; left: 6px; top: 0; font-size: 18px; font-style: italic; color: var(--pc); -webkit-text-stroke: 2px #000; paint-order: stroke fill; }
 .card.bump .pct { animation: bump .25s; }
 .card.out { opacity: 0.35; filter: grayscale(1); }
@@ -144,7 +145,7 @@ kbd { display: inline-block; min-width: 22px; padding: 1px 6px; margin: 1px; bor
   .panels { flex-direction: column; align-items: stretch; }
   .panel { width: 100%; }
   .vs { display: none; }
-  .card { width: 190px; transform: scale(0.85); }
+  .card { transform: scale(0.85); margin: 0 -14px; }
 }
 
 /* ---------- タッチ操作（スマホ） ---------- */
@@ -171,7 +172,7 @@ body.touch .pc-only { display: none !important; }
 
 /* タッチ時はHUDを画面上部へ（ボタンと重ならないように） */
 body.touch #cards { top: 4px; bottom: auto; gap: 3vw; }
-body.touch .card { transform: scale(0.62); transform-origin: top center; margin: 0 -48px; }
+body.touch .card { transform: scale(0.68); transform-origin: top center; margin: 0 -40px; }
 body.touch #timer { top: auto; bottom: 6px; font-size: 16px; }
 
 /* 縦持ち時の案内 */
