@@ -673,6 +673,20 @@ export class Fighter {
     this.vx = 0;
     audio.grab();
   }
+  // つかみ必殺ワザ: つかんだ相手を抱えたまま next のワザへ移る
+  commandGrab(v, next) {
+    if (this.state !== 'attack') return;
+    if (v.grabbing) v.releaseGrabQuiet();
+    v.move = null;
+    v.setState('grabbed');
+    v.grabbedBy = this;
+    v.vx = v.vy = v.kx = v.ky = 0;
+    v.pendingLaunch = null;
+    v.facing = -this.facing;
+    this.grabbing = v;
+    audio.grab();
+    this.startMove(next, true);
+  }
   holdVictim(off) {
     const v = this.grabbing;
     if (!v) return;
@@ -717,6 +731,7 @@ export class Fighter {
     this.vx = -this.facing * 0.08;
   }
   stGrabbed() {
+    if (this.input.pressed.shield && this.techCool === 0) { this.techWindow = 11; this.techCool = 40; }
     const g = this.grabbedBy;
     if (!g || (g.state !== 'grabbing' && !(g.state === 'attack' && g.grabbing === this))) {
       this.grabbedBy = null;

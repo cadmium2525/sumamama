@@ -15,7 +15,7 @@ html,body{margin:0;background:#222;font-family:sans-serif;color:#ddd}
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CHARS } from '../src/chars/index.js';
-import { applyPose } from '../src/models/rig.js';
+import { applyPose, track } from '../src/models/rig.js';
 
 // ref: 参考画像番号 / crop: 参考画像の切り抜き [x, y, w, h]（px）
 // cx, cy: モデル側で画面中央に来る位置 / w: 画面の横幅（ワールド単位）/ yaw: モデルの向き
@@ -40,6 +40,14 @@ const SHOTS = {
     front: { ref: 11, crop: [0, 0, 2000, 1282], cx: 0, cy: 1.33, w: 4.95, yaw: 0, anim: 'idle', pw: 800 },
     side: { ref: 14, crop: [0, 0, 2000, 1343], cx: -0.12, cy: 1.35, w: 4.95, yaw: Math.PI / 2, anim: 'idle', pw: 800 },
     back: { ref: 13, crop: [0, 0, 2000, 1226], cx: 0, cy: 1.26, w: 4.95, yaw: Math.PI, anim: 'idle', pw: 800 },
+  },
+  // 参考画像15は4方向が1枚に並んだ設定画
+  doros: {
+    face: { ref: 15, crop: [185, 10, 200, 200], cx: 0, cy: 2.48, w: 0.56, yaw: 0, anim: 'idle' },
+    front: { ref: 15, crop: [0, 0, 530, 1024], cx: 0, cy: 1.36, w: 1.5, yaw: 0, anim: 'idle', pw: 520 },
+    side: { ref: 15, crop: [515, 0, 265, 1024], cx: 0, cy: 1.36, w: 0.75, yaw: Math.PI / 2, anim: 'idle', pw: 300 },
+    back: { ref: 15, crop: [775, 0, 520, 1024], cx: 0, cy: 1.36, w: 1.47, yaw: Math.PI, anim: 'idle', pw: 520 },
+    wide: { ref: 0, crop: [0, 0, 1000, 1000], cx: 0.6, cy: 1.7, w: 5.2, yaw: Math.PI / 2, anim: 'idle', pw: 640 },
   },
 };
 
@@ -69,7 +77,11 @@ async function draw(sname) {
   const PW = shot.pw || 800, PH = Math.round(PW * shot.crop[3] / shot.crop[2]);
   r.setSize(PW, PH, false);
   m.root.rotation.y = shot.yaw;
-  const pose = q.get('pose') ? def.anims[q.get('pose')](0) : (shot.anim ? def.anims[shot.anim](0) : (shot.pose || {}));
+  // m=ワザ名&f=フレーム でワザの途中の姿勢を撮れる
+  const mv = window.mv || (q.get('m') ? { m: q.get('m'), f: +(q.get('f') || 0) } : null);
+  let pose = q.get('pose') ? def.anims[q.get('pose')](0) : (shot.anim ? def.anims[shot.anim](0) : (shot.pose || {}));
+  if (mv) { const a = def.moves[mv.m].anim; pose = track(typeof a === 'function' ? a({}) : a, mv.f); }
+  if (m.setSword) m.setSword(!!mv && /smash/.test(mv.m));
   // ov=JSON で姿勢の一部を上書きして試せる
   const ov = window.ov || (q.get('ov') ? JSON.parse(q.get('ov')) : null);
   applyPose(m.rig, {}, 1);
@@ -81,8 +93,9 @@ async function draw(sname) {
   cam.position.set(shot.cx, shot.cy, d);
   cam.lookAt(shot.cx, shot.cy, 0);
   // 画面が隠れていても確実に読めるよう fetch + createImageBitmap を使う
-  const img = imgs[shot.ref] || (imgs[shot.ref] = await createImageBitmap(await (await fetch(`refs/${shot.ref}.jpg`)).blob()));
   r.render(scene, cam);
+  if (!shot.ref) { out.width = PW; out.height = PH; g.drawImage(gl, 0, 0, PW, PH); return; }
+  const img = imgs[shot.ref] || (imgs[shot.ref] = await createImageBitmap(await (await fetch(`refs/${shot.ref}.jpg`)).blob()));
   out.width = PW * 2 + 12; out.height = PH + 44;
   g.fillStyle = '#1c1c22'; g.fillRect(0, 0, out.width, out.height);
   g.imageSmoothingQuality = 'high';

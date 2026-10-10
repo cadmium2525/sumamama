@@ -369,7 +369,10 @@ export class Battle {
   processHit(a, d, box) {
     const h = box.h;
     if (h.type === 'grab') {
-      if (a.state === 'attack' && d.state !== 'grabbed' && a.state !== 'grabbed') a.grabOpponent(d);
+      if (a.state === 'attack' && d.state !== 'grabbed' && a.state !== 'grabbed') {
+        // then: つかんだらそのまま専用のワザへ移る（つかみ必殺ワザ）
+        if (h.then) a.commandGrab(d, typeof h.then === 'function' ? h.then(a) : h.then); else a.grabOpponent(d);
+      }
       return;
     }
     const dmg = this.calcDmg(a, h);
