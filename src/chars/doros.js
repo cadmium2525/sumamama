@@ -6,12 +6,12 @@ import { approach, rand } from '../util.js';
 import { audio } from '../audio.js';
 
 // 攻撃判定の位置と大きさは、体の拡大率に合わせて広げる
-const HS = (DOROS_SCALE + 1) / 2;
+const HS = DOROS_SCALE;
 const hb = (f0, f1, x, y, r, dmg, ang, bkb, kbg, extra = {}) => ({ f: [f0, f1], x: x * HS, y: y * HS, r: r * HS, dmg, ang, bkb, kbg, ...extra });
 const DARK = 0xb040ff, DARK2 = 0x5a1a9a;
 
 // 基本姿勢: 胸を張って仁王立ち、拳を握る
-const GI = { by: -0.02, legR: [-0.1, 0, -0.17], shinR: [0.18, 0, 0.05], legL: [0.04, 0, 0.17], shinL: [0.14, 0, -0.05], torso: [0.12, 0, 0], head: [-0.06, 0, 0], armR: [0.05, 0, -0.32], foreR: [-0.35, 0, 0.1], armL: [0.05, 0, 0.32], foreL: [-0.35, 0, -0.1] };
+const GI = { by: -0.05, legR: [-0.1, 0, -0.17], shinR: [0.18, 0, 0.05], legL: [0.04, 0, 0.17], shinL: [0.14, 0, -0.05], torso: [0.12, 0, 0], head: [-0.06, 0, 0], armR: [0.05, 0, -0.32], foreR: [-0.35, 0, 0.1], armL: [0.05, 0, 0.32], foreL: [-0.35, 0, -0.1] };
 const AIR = { legR: [-0.5, 0, -0.12], shinR: [0.8, 0, 0], legL: [0.15, 0, 0.12], shinL: [0.5, 0, 0], armR: [-0.3, 0, -0.6], foreR: [-0.7, 0, 0], armL: [-0.3, 0, 0.6], foreL: [-0.7, 0, 0], torso: [0.1, 0, 0] };
 const SWORD_UP = { ...GI, armR: [-3.3, 0, -0.15], foreR: [-0.2, 0, 0], wep: [1.3, 0, 0], torso: [-0.25, 0.2, 0], armL: [-0.5, 0, 0.5], legR: [0.2, 0, -0.15], legL: [-0.3, 0, 0.15], shinL: [0.3, 0, 0] };
 const SWORD_DOWN = { ...GI, armR: [-0.95, 0, -0.05], foreR: [-0.1, 0, 0], wep: [1.57, 0, 0], torso: [0.55, 0.3, 0], armL: [0.3, 0, 0.5], legR: [0.4, 0, -0.15], shinR: [0.3, 0, 0], legL: [-0.8, 0, 0.15], shinL: [0.9, 0, 0], by: -0.08, bz: 0.25 };
@@ -428,7 +428,7 @@ export const DOROS = {
   desc: '動きは重く遅いが、どのワザも一撃必殺級。闇の拳と大剣で相手をねじ伏せる。',
   specials: ['滅砕拳（長い溜め・溜め中はふっとばない・振り向きで威力増）', '獄炎掌（突進つかみ・空中では道連れ急降下）', '雷閃掌（上昇つかみ→爆発）', '烈震脚（地上は突進蹴り・空中は急降下メテオ）'],
   stats: {
-    weight: 118, height: 2.7, radius: 0.55,
+    weight: 118, height: 2.8, radius: 0.52,
     walkSpeed: 0.055, dashSpeed: 0.125, dashFrames: 13, runSpeed: 0.102, traction: 0.011,
     airSpeed: 0.066, airAccel: 0.005, airFriction: 0.003,
     gravity: 0.0108, fallSpeed: 0.195, fastFall: 0.31,

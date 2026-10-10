@@ -10,9 +10,9 @@ const VARIANTS = [
   { skin: 0x565a66, hair: 0xd8d8e4, iron: 0x20283c, gold: 0xb4bcc8, red: 0x1c2c66, redIn: 0x0e1638, gem: 0x40d0ff, fur: 0x9aa0b0, cloth: 0x1c2030, goldCss: '#c0c8d8', redCss: '#1c2c66', ironCss: '#3a4460', printCss: '#70788c', cloth2: 0x242838 },
 ];
 
-export const DOROS_HIP = 1.48;
+export const DOROS_HIP = 1.6;
 // 全身の拡大率（ほかのファイターを見下ろす背丈にする）
-export const DOROS_SCALE = 1.14;
+export const DOROS_SCALE = 1.1;
 
 // 金の紋様（重ねた菱形と、裾から立ちのぼる炎の唐草）を布地に描く
 function patternTex(P) {
@@ -117,12 +117,13 @@ export function buildDoros(variant = 0) {
   torso.scale.setScalar(0.88); // 脚を長く、上半身を小さめにして頭身を上げる
 
   // ---------- 腰（帯・前垂れ・草摺り） ----------
-  place(mesh(new THREE.SphereGeometry(0.3, 16, 12), cloth), hips, 0, 0.02, 0, 0, 0, 0, [1.05, 0.8, 0.9]);
-  place(mesh(lathe([[0.31, 0.22], [0.325, 0.16], [0.325, 0.08], [0.31, 0.04]], 24), iron), hips, 0, 0, 0, 0, 0, 0, [1, 1, 0.88]);
-  for (const y of [0.22, 0.04]) place(mesh(new THREE.TorusGeometry(0.32, 0.012, 5, 28), gold), hips, 0, y, 0, Math.PI / 2, 0, 0, [1, 0.88, 1]);
-  for (let i = 0; i < 10; i++) { const a = (i + 0.5) / 10 * Math.PI * 2; if (Math.abs(Math.sin(a)) < 0.25 && Math.cos(a) > 0) continue; stud(hips, Math.sin(a) * 0.33, 0.13, Math.cos(a) * 0.29); }
-  gem(hips, 0, 0.13, 0.295, 0.055);
-  for (const s of [-1, 1]) place(mesh(new THREE.ConeGeometry(0.04, 0.12, 4), gold), hips, s * 0.11, 0.13, 0.29, 0, 0, s * 1.57, [1, 1, 0.4]);
+  place(mesh(new THREE.SphereGeometry(0.3, 16, 12), cloth), hips, 0, 0.02, 0, 0, 0, 0, [0.9, 0.8, 0.8]);
+  const beltG = new THREE.Group(); place(beltG, hips, 0, 0, 0, 0, 0, 0, [0.84, 1, 0.86]);
+  place(mesh(lathe([[0.31, 0.22], [0.325, 0.16], [0.325, 0.08], [0.31, 0.04]], 24), iron), beltG, 0, 0, 0, 0, 0, 0, [1, 1, 0.88]);
+  for (const y of [0.22, 0.04]) place(mesh(new THREE.TorusGeometry(0.32, 0.012, 5, 28), gold), beltG, 0, y, 0, Math.PI / 2, 0, 0, [1, 0.88, 1]);
+  for (let i = 0; i < 10; i++) { const a = (i + 0.5) / 10 * Math.PI * 2; if (Math.abs(Math.sin(a)) < 0.25 && Math.cos(a) > 0) continue; stud(beltG, Math.sin(a) * 0.33, 0.13, Math.cos(a) * 0.29); }
+  gem(beltG, 0, 0.13, 0.295, 0.06);
+  for (const s of [-1, 1]) place(mesh(new THREE.ConeGeometry(0.04, 0.12, 4), gold), beltG, s * 0.11, 0.13, 0.29, 0, 0, s * 1.57, [1, 1, 0.4]);
   // 前垂れ（赤地に金の紋様、裾に房）と後ろの垂れ
   const tab = (z, ry, len, w) => {
     const geo = new THREE.PlaneGeometry(w, len, 1, 4);
@@ -132,12 +133,12 @@ export function buildDoros(variant = 0) {
     place(mesh(new THREE.BoxGeometry(w * 1.04, 0.05, 0.02), gold), g, 0, -len - 0.02, 0);
     for (const s of [-1, 1]) place(mesh(new THREE.BoxGeometry(0.018, len, 0.012), gold), g, s * w / 2, -len / 2, 0.002);
   };
-  tab(0.3, 0, 0.72, 0.3);
-  tab(-0.27, Math.PI, 0.5, 0.3);
+  tab(0.26, 0, 0.78, 0.27);
+  tab(-0.235, Math.PI, 0.5, 0.27);
   // 両脇の草摺り（黒鉄に金縁の五角板）
   for (const s of [-1, 1]) {
     const g = new THREE.Group();
-    place(g, hips, s * 0.27, 0.05, 0.17, -0.06, s * 0.72, s * 0.1);
+    place(g, hips, s * 0.245, 0.05, 0.14, -0.06, s * 0.8, s * 0.1, 0.92);
     const sh = new THREE.Shape();
     sh.moveTo(-0.14, 0); sh.lineTo(0.14, 0); sh.lineTo(0.16, -0.36); sh.lineTo(0, -0.52); sh.lineTo(-0.16, -0.36); sh.lineTo(-0.14, 0);
     place(mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.03, bevelEnabled: false }), iron), g, 0, 0, 0);
@@ -149,7 +150,7 @@ export function buildDoros(variant = 0) {
   }
 
   // ---------- 胴（うろこの胸甲。分厚い胸板と太い胴） ----------
-  place(mesh(lathe([[0.29, 0.0], [0.31, 0.14], [0.345, 0.32], [0.4, 0.5], [0.42, 0.62], [0.36, 0.73], [0.22, 0.8], [0.15, 0.82]], 24), scale), torso, 0, 0, 0, 0, 0, 0, [0.92, 1, 0.84]);
+  place(mesh(lathe([[0.255, 0.0], [0.265, 0.14], [0.31, 0.34], [0.395, 0.54], [0.42, 0.66], [0.36, 0.77], [0.22, 0.85], [0.15, 0.88]], 24), scale), torso, 0, 0, 0, 0, 0, 0, [0.92, 1, 0.8]);
   place(mesh(new THREE.SphereGeometry(1, 16, 10), scale), torso, 0, 0.56, 0.2, -0.1, 0, 0, [0.34, 0.2, 0.14]);
   // 首飾り（金の鎖に赤い宝玉。中央が大きい）
   for (let i = -2; i <= 2; i++) {
@@ -158,12 +159,12 @@ export function buildDoros(variant = 0) {
   }
   place(mesh(new THREE.TorusGeometry(0.34, 0.014, 5, 20, Math.PI * 0.6), gold), torso, 0, 0.66, 0.05, Math.PI / 2 + 0.28, 0, Math.PI * 0.2, [1, 0.95, 1]);
   // 太い首
-  place(mesh(taperCapsule(0.1, 0.15, 0.155, 12), skin), torso, 0, 0.88, 0.0);
+  place(mesh(taperCapsule(0.17, 0.135, 0.14, 12), skin), torso, 0, 0.86, 0.0);
 
   // 肩当て（角ばった板を重ねた黒鉄。金縁と鋲）
   for (const s of [-1, 1]) {
     const pa = new THREE.Group();
-    place(pa, torso, s * 0.49, 0.75, 0, 0, 0, s * -0.26, 1.08);
+    place(pa, torso, s * 0.47, 0.76, 0, 0, 0, s * -0.26, 0.98);
     const g1 = lathe([[0.02, 0.1], [0.2, 0.04], [0.3, -0.1]], 4); g1.rotateY(Math.PI / 4);
     place(mesh(g1, iron), pa, 0, 0, 0, 0, 0, 0, [1.05, 1, 1.15]);
     const g2 = lathe([[0.285, -0.08], [0.3, -0.1], [0.32, -0.14]], 4); g2.rotateY(Math.PI / 4);
@@ -188,17 +189,17 @@ export function buildDoros(variant = 0) {
   capeG.add(new THREE.Mesh(capeGeo, capeOut));
   const capeInner = new THREE.Mesh(capeGeo, capeIn); capeInner.userData.inner = true; capeG.add(capeInner);
   // 襟（首の後ろから両肩へ立ち上がる）と肩に掛かる布
-  place(mesh(lathe([[0.2, 0.78], [0.25, 0.92], [0.31, 1.08]], 20, Math.PI * 0.45, Math.PI * 1.1), redM), torso, 0, 0, -0.03, 0, 0, 0, [1.1, 1, 0.85]);
-  place(mesh(lathe([[0.306, 1.072], [0.326, 1.1]], 20, Math.PI * 0.45, Math.PI * 1.1), gold), torso, 0, 0, -0.03, 0, 0, 0, [1.1, 1, 0.85]);
+  place(mesh(lathe([[0.2, 0.8], [0.25, 0.96], [0.31, 1.14]], 20, Math.PI * 0.45, Math.PI * 1.1), redM), torso, 0, 0, -0.03, 0, 0, 0, [1.1, 1, 0.85]);
+  place(mesh(lathe([[0.306, 1.132], [0.326, 1.16]], 20, Math.PI * 0.45, Math.PI * 1.1), gold), torso, 0, 0, -0.03, 0, 0, 0, [1.1, 1, 0.85]);
   place(mesh(new THREE.SphereGeometry(1, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), redM), torso, 0, 0.76, -0.2, 0, 0, 0, [0.44, 0.1, 0.2]);
   place(mesh(new THREE.SphereGeometry(1, 12, 8), redM), torso, 0, 0.6, -0.27, 0, 0, 0, [0.36, 0.2, 0.08]);
   // 背中の留め具（金の鎖と宝玉）
   for (const [x, r] of [[-0.3, 0.07], [0, 0.08], [0.3, 0.07]]) gem(torso, x, 0.66 - (x === 0 ? 0.06 : 0), -0.36, r, 0, Math.PI);
 
   // ---------- 頭（顔は絵で描き、鼻・眉・耳・髪は形で足す） ----------
-  const head = joint('head', torso, 0, 0.86, 0.03); j.head = head;
+  const head = joint('head', torso, 0, 0.96, 0.03); j.head = head;
   const hs = new THREE.Group();
-  place(hs, head, 0, 0, 0, 0, 0, 0, 1.07);
+  place(hs, head, 0, 0, 0, 0, 0, 0, 0.98);
   const HEAD_H = 0.34, HEAD_Z = 1.1;
   // 高さ y（0=あご先）での頭の半径。角ばったあご、広い頬、丸い頭頂
   const headRad = (y) => {
@@ -344,8 +345,8 @@ export function buildDoros(variant = 0) {
     const hand = new THREE.Group(); hand.userData.joint = true;
     place(hand, fore, 0, -0.41, 0);
     hands[s] = hand;
-    place(mesh(new THREE.SphereGeometry(0.125, 12, 10), skin), hand, 0, 0, 0.01, 0, 0, 0, [1, 1.0, 0.9]);
-    for (let k = 0; k < 4; k++) place(mesh(new THREE.SphereGeometry(0.038, 6, 5), skin), hand, (k - 1.5) * 0.056, -0.09, 0.05);
+    place(mesh(new THREE.SphereGeometry(0.112, 12, 10), skin), hand, 0, 0, 0.01, 0, 0, 0, [1, 1.0, 0.9]);
+    for (let k = 0; k < 4; k++) place(mesh(new THREE.SphereGeometry(0.038, 6, 5), skin), hand, (k - 1.5) * 0.05, -0.08, 0.045);
     const a = new THREE.Object3D(); a.position.set(0, -0.1, 0); fore.add(a);
     const b = new THREE.Object3D(); b.position.set(0, -0.55, 0); fore.add(b);
     trails[R ? 'handR' : 'handL'] = [a, b];
@@ -381,28 +382,28 @@ export function buildDoros(variant = 0) {
   // ---------- 脚（太い腿、宝玉つきの膝当て、毛皮の縁の重い長靴） ----------
   for (const s of [-1, 1]) {
     const R = s < 0;
-    const leg = joint(R ? 'legR' : 'legL', hips, s * 0.19, -0.02, 0);
+    const leg = joint(R ? 'legR' : 'legL', hips, s * 0.17, -0.02, 0);
     j[R ? 'legR' : 'legL'] = leg;
-    place(mesh(taperCapsule(0.58, 0.185, 0.15, 12), gloss(P.cloth2, { rough: 0.9, metal: 0.02, env: 0.2 })), leg, 0, 0, 0);
-    const shin = joint(R ? 'shinR' : 'shinL', leg, 0, -0.62, 0);
+    place(mesh(taperCapsule(0.64, 0.17, 0.135, 12), gloss(P.cloth2, { rough: 0.9, metal: 0.02, env: 0.2 })), leg, 0, 0, 0);
+    const shin = joint(R ? 'shinR' : 'shinL', leg, 0, -0.68, 0);
     j[R ? 'shinR' : 'shinL'] = shin;
     // 膝当て（金縁の菱形板に赤い宝玉）
-    const kg = lathe([[0.02, 0.2], [0.17, 0.02], [0.02, -0.16]], 4); kg.rotateY(Math.PI / 4);
-    place(mesh(kg, iron), shin, 0, 0.02, 0.12, 0, 0, 0, [1, 1, 0.45]);
-    const kr = lathe([[0.17, 0.02], [0.19, 0.02]], 4); kr.rotateY(Math.PI / 4);
-    place(mesh(kr, gold), shin, 0, 0.02, 0.12, 0, 0, 0, [1, 6, 0.45]);
-    gem(shin, 0, 0.03, 0.2, 0.042);
-    furRing(shin, -0.02, 0.17, 0.06);
-    place(mesh(lathe([[0.17, -0.02], [0.18, -0.16], [0.155, -0.44], [0.15, -0.6]], 14), orn), shin, 0, 0, 0);
-    furRing(shin, -0.58, 0.15, 0.045);
+    const kg = lathe([[0.02, 0.2], [0.15, 0.02], [0.02, -0.16]], 4); kg.rotateY(Math.PI / 4);
+    place(mesh(kg, iron), shin, 0, 0.02, 0.105, 0, 0, 0, [1, 1, 0.45]);
+    const kr = lathe([[0.15, 0.02], [0.17, 0.02]], 4); kr.rotateY(Math.PI / 4);
+    place(mesh(kr, gold), shin, 0, 0.02, 0.105, 0, 0, 0, [1, 6, 0.45]);
+    gem(shin, 0, 0.03, 0.178, 0.04);
+    furRing(shin, -0.02, 0.145, 0.048);
+    place(mesh(lathe([[0.145, -0.02], [0.155, -0.16], [0.125, -0.48], [0.12, -0.66]], 14), orn), shin, 0, 0, 0);
+    furRing(shin, -0.64, 0.12, 0.04);
     const foot = new THREE.Group();
-    place(foot, shin, 0, -0.67, 0.03);
+    place(foot, shin, 0, -0.73, 0.03, 0, 0, 0, 0.88);
     place(mesh(new THREE.SphereGeometry(1, 12, 8), iron), foot, 0, 0.01, 0.08, 0, 0, 0, [0.165, 0.1, 0.27]);
     place(mesh(new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), gold), foot, 0, -0.04, 0.31, Math.PI / 2 - 0.5, 0, 0, [0.1, 0.05, 0.045]);
     place(mesh(new THREE.TorusGeometry(0.15, 0.018, 5, 16, Math.PI), gold), foot, 0, -0.01, 0.1, 0, 0, 0, [1.1, 0.75, 1]);
     place(mesh(new THREE.BoxGeometry(0.3, 0.035, 0.5), iron), foot, 0, -0.085, 0.1);
     const a = new THREE.Object3D(); shin.add(a);
-    const b = new THREE.Object3D(); b.position.set(0, -0.75, 0.25); shin.add(b);
+    const b = new THREE.Object3D(); b.position.set(0, -0.8, 0.22); shin.add(b);
     trails[R ? 'footR' : 'footL'] = [a, b];
   }
 
@@ -415,7 +416,7 @@ export function buildDoros(variant = 0) {
 
   return {
     root, rig, trails, worldObjects: [], orbPoint, shadow, hands,
-    height: 2.7, headY: 3.2,
+    height: 2.8, headY: 3.3,
     trailColor: variant ? 0x60b0ff : 0xb040ff,
     update(dt, ctx) {
       t += dt;
