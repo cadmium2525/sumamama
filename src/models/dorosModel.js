@@ -63,10 +63,11 @@ export function buildDoros(variant = 0) {
   const flashMats = [skin, iron, scale, cloth, capeOut, redM];
   const baseEmissive = flashMats.map((m) => m.emissive.clone());
 
+  const gemBase = metal(new THREE.Color(P.gold).multiplyScalar(0.7), { rough: 0.75, metal: 0.3, env: 0.3 });
   // 金の台座つき宝玉 / 金の鋲
   const gem = (parent, x, y, z, r = 0.04, rx = 0, ry = 0) => {
     const g = new THREE.Group(); place(g, parent, x, y, z, rx, ry, 0);
-    place(mesh(new THREE.CylinderGeometry(r * 1.45, r * 1.45, r * 0.4, 8), gold), g, 0, 0, 0, Math.PI / 2, 0, 0);
+    place(mesh(new THREE.CylinderGeometry(r * 1.4, r * 1.4, r * 0.4, 8), gemBase), g, 0, 0, 0, Math.PI / 2, 0, 0);
     place(mesh(new THREE.OctahedronGeometry(r, 0), gemM), g, 0, 0, r * 0.35, 0, 0, 0, [1, 1, 0.6]);
   };
   const stud = (parent, x, y, z, r = 0.022) => place(mesh(new THREE.OctahedronGeometry(r, 0), gold), parent, x, y, z);
@@ -142,12 +143,13 @@ export function buildDoros(variant = 0) {
     const a = (u - 0.5) * 2.2;
     const w = 0.46 + 0.62 * v;
     const tear = v > 0.85 ? 0.16 * Math.abs(Math.sin(u * Math.PI * 12.5)) * (v - 0.85) / 0.15 : 0;
-    p.set(Math.sin(a) * w, -2.1 * v + tear + 0.04 * Math.cos(a) * (1 - v), -Math.cos(a) * 0.1 - 0.12 * v + 0.05 * Math.sin(u * Math.PI * 5) * v);
+    p.set(Math.sin(a) * w, -2.1 * v + tear + 0.04 * Math.cos(a) * (1 - v), -Math.cos(a) * 0.1 - 0.26 * Math.min(1, v * 3) - 0.08 * v + 0.05 * Math.sin(u * Math.PI * 5) * v);
   });
   capeG.add(new THREE.Mesh(capeGeo, capeOut));
   const capeInner = new THREE.Mesh(capeGeo, capeIn); capeInner.userData.inner = true; capeG.add(capeInner);
   // 襟（首の後ろから両肩へ立ち上がる）と肩に掛かる布
-  place(mesh(lathe([[0.2, 0.76], [0.23, 0.88], [0.25, 0.99]], 20, Math.PI * 0.45, Math.PI * 1.1), redM), torso, 0, 0, -0.03, 0, 0, 0, [1.05, 1, 0.9]);
+  place(mesh(lathe([[0.2, 0.76], [0.27, 0.9], [0.33, 1.06]], 20, Math.PI * 0.45, Math.PI * 1.1), redM), torso, 0, 0, -0.03, 0, 0, 0, [1.1, 1, 0.85]);
+  place(mesh(lathe([[0.33, 1.05], [0.345, 1.075]], 20, Math.PI * 0.45, Math.PI * 1.1), gold), torso, 0, 0, -0.03, 0, 0, 0, [1.1, 1, 0.85]);
   place(mesh(new THREE.SphereGeometry(1, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), redM), torso, 0, 0.76, -0.2, 0, 0, 0, [0.44, 0.1, 0.2]);
   place(mesh(new THREE.SphereGeometry(1, 12, 8), redM), torso, 0, 0.6, -0.27, 0, 0, 0, [0.36, 0.2, 0.08]);
   // 背中の留め具（金の鎖と宝玉）
@@ -157,23 +159,23 @@ export function buildDoros(variant = 0) {
   const head = joint('head', torso, 0, 0.86, 0.03); j.head = head;
   const hs = new THREE.Group();
   place(hs, head, 0, 0, 0, 0, 0, 0, 1.12);
-  place(mesh(new THREE.SphereGeometry(0.15, 18, 14), skin), hs, 0, 0.17, 0.0, 0, 0, 0, [0.95, 1.05, 1.02]);
-  place(mesh(lathe([[0.07, -0.03], [0.115, 0.03], [0.13, 0.12], [0.125, 0.2]], 12), skin), hs, 0, 0, 0.015);
+  place(mesh(new THREE.SphereGeometry(0.15, 18, 14), skin), hs, 0, 0.17, 0.0, 0, 0, 0, [1.1, 1.0, 1.02]);
+  place(mesh(lathe([[0.09, 0.0], [0.125, 0.04], [0.135, 0.12], [0.13, 0.2]], 12), skin), hs, 0, 0, 0.015, 0, 0, 0, [1.15, 1, 1]);
   // 太い眉の庇、赤く光る目
-  place(mesh(new THREE.BoxGeometry(0.21, 0.045, 0.07), skin), hs, 0, 0.215, 0.12, 0.4, 0, 0);
+  place(mesh(new THREE.BoxGeometry(0.25, 0.045, 0.07), skin), hs, 0, 0.215, 0.12, 0.4, 0, 0);
   for (const s of [-1, 1]) {
     place(mesh(new THREE.BoxGeometry(0.085, 0.022, 0.03), hair), hs, s * 0.06, 0.222, 0.152, 0.3, 0, s * 0.36);
     place(mesh(new THREE.SphereGeometry(0.024, 8, 6), basic(0x140c0a)), hs, s * 0.057, 0.183, 0.125, 0, 0, 0, [1.4, 0.9, 0.6]);
     place(mesh(new THREE.SphereGeometry(0.013, 8, 6), basic(0xe8e0d0)), hs, s * 0.057, 0.181, 0.138, 0, 0, s * 0.3, [1.5, 0.7, 0.6]);
     place(mesh(new THREE.SphereGeometry(0.006, 6, 5), basic(0x200808)), hs, s * 0.055, 0.181, 0.146);
     // 尖った耳
-    place(mesh(new THREE.ConeGeometry(0.034, 0.08, 5), skin), hs, s * 0.15, 0.2, -0.01, -0.5, 0, s * -0.5, [1, 1, 0.45]);
+    place(mesh(new THREE.ConeGeometry(0.038, 0.1, 5), skin), hs, s * 0.175, 0.2, -0.01, -0.4, 0, s * -0.6, [1, 1, 0.45]);
     // 長いもみあげ
-    place(mesh(new THREE.ConeGeometry(0.045, 0.2, 5), hair), hs, s * 0.13, 0.12, 0.03, Math.PI, 0, s * 0.12, [0.7, 1, 1.2]);
+    place(mesh(new THREE.ConeGeometry(0.055, 0.24, 5), hair), hs, s * 0.155, 0.11, 0.03, Math.PI, 0, s * 0.1, [0.7, 1, 1.3]);
   }
   // 大きな鼻、への字の口
-  place(mesh(new THREE.ConeGeometry(0.046, 0.17, 4), skin), hs, 0, 0.16, 0.15, 0.6, Math.PI / 4, 0, [0.85, 1, 1.4]);
-  for (const s of [-1, 1]) place(mesh(new THREE.BoxGeometry(0.05, 0.01, 0.01), basic(0x1c1410)), hs, s * 0.022, 0.058, 0.13, 0, 0, s * -0.25);
+  place(mesh(new THREE.ConeGeometry(0.05, 0.15, 4), skin), hs, 0, 0.16, 0.15, 0.6, Math.PI / 4, 0, [1.15, 1, 1.4]);
+  for (const s of [-1, 1]) place(mesh(new THREE.BoxGeometry(0.05, 0.006, 0.01), basic(0x2c2e24)), hs, s * 0.022, 0.07, 0.135, 0, 0, s * -0.2);
   // 金の額飾り（中央に赤い宝玉、左右へ伸びる）
   gem(hs, 0, 0.262, 0.148, 0.026, -0.25);
   place(mesh(new THREE.ConeGeometry(0.022, 0.05, 4), gold), hs, 0, 0.305, 0.14, -0.3, 0, 0, [1, 1, 0.4]);
@@ -186,8 +188,8 @@ export function buildDoros(variant = 0) {
   let seed = 3; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   for (let r = 0; r < 4; r++) for (let i = 0; i < 6; i++) {
     const a = (i - 2.5) / 2.5;
-    const len = 0.15 + rnd() * 0.06 + (r === 1 ? 0.03 : 0);
-    place(mesh(new THREE.ConeGeometry(0.075, len, 5), hair), hs, a * (0.115 - r * 0.005), 0.31 + 0.05 * (1 - Math.abs(a)) - r * 0.04, 0.02 - r * 0.07, -0.3 - r * 0.45, 0, a * -0.45);
+    const len = 0.2 + rnd() * 0.08 + (r >= 2 ? 0.08 : 0);
+    place(mesh(new THREE.ConeGeometry(0.085, len, 5), hair), hs, a * (0.115 - r * 0.005), 0.31 + 0.05 * (1 - Math.abs(a)) - r * 0.04, 0.02 - r * 0.07, -0.3 - r * 0.45, 0, a * -0.45);
   }
 
   // ---------- 腕（むき出しの太い上腕、毛皮の縁の籠手、大きな拳） ----------
