@@ -6,7 +6,7 @@ import { taperCapsule, disposeTree } from './common.js';
 import { blobShadow } from './kit.js';
 
 const VARIANTS = [
-  { red: 0x8e150c, dark: 0x560a06, belly: 0xc09a50, membrane: 0x9c7a42, claw: 0xf4ecf0, spike: 0xffb81c, frill: 0xa8802c, eye: 0x5e8a2e },
+  { red: 0x8e150c, dark: 0x560a06, belly: 0xc09a50, membrane: 0x9c7a42, claw: 0xf4ecf0, spike: 0xffd22a, frill: 0xa8802c, eye: 0x5e8a2e },
   { red: 0x24408a, dark: 0x142656, belly: 0xc6d4e6, membrane: 0x5a8ab8, claw: 0xf0f4ff, spike: 0x5fe6ff, frill: 0x8fd8ff, eye: 0xffd24a },
 ];
 
@@ -55,7 +55,7 @@ class Tail {
       s.rotation.set(Math.PI / 2 + rz * 0.6, ry, 0);
       this.tip.add(s);
     }
-    this.tip.scale.setScalar(1.7);
+    this.tip.scale.setScalar(2.0);
     this._t = new THREE.Vector3(); this._n = new THREE.Vector3(); this._b = new THREE.Vector3();
   }
   // lift: 上下の反り、swing: 左右の振り、time: 揺らぎ
@@ -144,6 +144,14 @@ export function buildDragon(variant = 0) {
     const r = [0.2, 0.28, 0.35, 0.35, 0.3, 0.25, 0.23, 0.2, 0.19][i];
     place(mesh(new THREE.SphereGeometry(1, 14, 6), belly), torso, 0, y, r * 0.74 + (i < 4 ? 0.035 : 0.0), -0.12, 0, 0, [w * 1.2, 0.058, 0.07]);
   }
+  // 腹の帯を股まで続ける
+  for (let i = 0; i < 3; i++) place(mesh(new THREE.SphereGeometry(1, 12, 6), belly), hips, 0, 0.0 - i * 0.075, 0.2 - i * 0.03, 0.25 + i * 0.25, 0, 0, [0.15 - i * 0.02, 0.05, 0.06]);
+  // 背中の山形の板（暗い赤の板が背骨に沿って重なる）
+  const redDark = red.clone(); redDark.color = new THREE.Color(P.red).lerp(new THREE.Color(P.dark), 0.55);
+  for (let i = 0; i < 5; i++) {
+    const c = mesh(new THREE.ConeGeometry(0.2 - i * 0.012, 0.2, 4), redDark);
+    place(c, torso, 0, 0.2 + i * 0.125, -[0.17, 0.21, 0.27, 0.32, 0.28][i], Math.PI - 0.15, 0, 0, [1, 1, 0.22]);
+  }
   // 背中の山形の稜
   for (let i = 0; i < 4; i++) {
     const c = mesh(new THREE.ConeGeometry(0.1, 0.16, 4), red);
@@ -153,10 +161,10 @@ export function buildDragon(variant = 0) {
   // ---------- 頭（首ごと） ----------
   // くさび形の頭。星形に広がる5本の角、金色の頬ヒレ、開いた口の奥に橙の舌。
   const head = joint('head', torso, 0, 0.74, 0.04); j.head = head;
-  place(mesh(taperCapsule(0.22, 0.13, 0.16, 8), red), head, 0, 0.2, 0.03, -0.35, 0, 0);
-  for (let i = 0; i < 3; i++) place(mesh(new THREE.SphereGeometry(1, 8, 5), belly), head, 0, 0.04 + i * 0.075, 0.115 + i * 0.03, -0.3, 0, 0, [0.075, 0.04, 0.045]);
+  place(mesh(taperCapsule(0.3, 0.13, 0.17, 8), red), head, 0, 0.28, 0.06, -0.35, 0, 0); // 長い首
+  for (let i = 0; i < 4; i++) place(mesh(new THREE.SphereGeometry(1, 8, 5), belly), head, 0, 0.04 + i * 0.075, 0.125 + i * 0.035, -0.3, 0, 0, [0.085, 0.04, 0.045]); // 喉の蛇腹
   const skull = new THREE.Group();
-  place(skull, head, 0, 0.32, 0.1, 0.05, 0, 0, 1.0);
+  place(skull, head, 0, 0.4, 0.13, 0.05, 0, 0, 1.08);
   // 四角すい台を前へ向けて「くさび」を作る
   const wedge = (pts, parent, x, y, z, rx, sx, sy, mat = red) => {
     const g = lathe(pts, 4);
