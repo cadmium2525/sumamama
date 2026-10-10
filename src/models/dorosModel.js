@@ -11,8 +11,8 @@ const VARIANTS = [
 ];
 
 export const DOROS_HIP = 1.6;
-// 全身の拡大率（ほかのファイターを見下ろす背丈にする）
-export const DOROS_SCALE = 1.1;
+// 全身の拡大率（縦横同じ比率。足場の下に立っても頭が突き抜けない背丈にする）
+export const DOROS_SCALE = 0.88;
 
 // 金の紋様（重ねた菱形と、裾から立ちのぼる炎の唐草）を布地に描く
 function patternTex(P) {
@@ -416,7 +416,7 @@ export function buildDoros(variant = 0) {
 
   return {
     root, rig, trails, worldObjects: [], orbPoint, shadow, hands,
-    height: 2.8, headY: 3.3,
+    height: 2.3, headY: 2.7,
     trailColor: variant ? 0x60b0ff : 0xb040ff,
     update(dt, ctx) {
       t += dt;

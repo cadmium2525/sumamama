@@ -162,8 +162,8 @@ class App {
         m.root.rotation.y = 0.45;
         scene.add(m.root);
         m.root.updateMatrixWorld(true);
-        const headY = { illumine: 1.62, dullahan: 1.92, dragon: 2.3, doros: 2.86 }[def.id] || 1.8;
-        cam.position.set(0.1, headY + 0.1, { illumine: 2.6, dullahan: 2.2, dragon: 2.6, doros: 2.6 }[def.id] || 2.4);
+        const headY = { illumine: 1.62, dullahan: 1.92, dragon: 2.3, doros: 2.29 }[def.id] || 1.8;
+        cam.position.set(0.1, headY + 0.1, { illumine: 2.6, dullahan: 2.2, dragon: 2.6, doros: 2.1 }[def.id] || 2.4);
         cam.lookAt(0, headY - 0.05, 0);
         scene.background = new THREE.Color(def.color).multiplyScalar(0.25);
         r.render(scene, cam);
