@@ -38,17 +38,40 @@ button { font-family: var(--font); cursor: pointer; }
 /* ---------- キャラ選択 ---------- */
 #select { justify-content: space-between; padding: 18px 24px 20px; }
 .sel-header { width: 100%; display: flex; align-items: center; gap: 20px; }
-.sel-header h2 { margin: 0; font-size: 30px; font-style: italic; letter-spacing: 0.1em; text-shadow: 0 3px 0 #000, 0 0 14px #a95bff; flex: 1; }
-.back-btn { background: var(--panel); color: #fff; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; padding: 8px 16px; font-size: 15px; }
+.sel-header h2 { white-space: nowrap; margin: 0; font-size: 30px; font-style: italic; letter-spacing: 0.1em; text-shadow: 0 3px 0 #000, 0 0 14px #a95bff; flex: 1; }
+.back-btn { white-space: nowrap; background: var(--panel); color: #fff; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; padding: 8px 16px; font-size: 15px; }
 .rules { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .rule { display: flex; align-items: center; gap: 8px; background: var(--panel); padding: 8px 14px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.15); }
 .rule span { font-size: 13px; color: #cbb8f0; }
 .rule b { font-size: 22px; min-width: 24px; text-align: center; }
 .rule button { white-space: nowrap; background: #2e1f55; color: #fff; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 4px 12px; font-size: 16px; }
-.panels { width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex: 1; padding-bottom: 14px; }
+.panels { width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex: 1; padding-bottom: 14px; pointer-events: none; }
+.panels > * { pointer-events: auto; }
 .vs { align-self: center; font-size: 64px; font-style: italic; font-weight: 900; color: #fff; -webkit-text-stroke: 3px #1a0830; paint-order: stroke fill; text-shadow: 0 0 30px #ff5ab0; opacity: 0.85; }
-.panel { width: min(400px, 34vw); background: var(--panel); border-radius: 18px; border: 3px solid var(--pc); box-shadow: 0 0 28px color-mix(in srgb, var(--pc) 50%, transparent); padding: 14px 16px 16px; position: relative; overflow: hidden; }
-.panel::before { content: ""; position: absolute; left: 0; top: 0; right: 0; height: 6px; background: var(--pc); }
+.panel { width: min(380px, 36vw); background: var(--panel); border-radius: 18px; border: 3px solid var(--pc); box-shadow: 0 0 28px color-mix(in srgb, var(--pc) 50%, transparent); padding: 14px 16px 16px; position: relative; overflow: hidden; }
+/* ファイター一覧（中央）。えらんだ側の色でタイルを縁取り、札を付ける */
+.roster-wrap { align-self: center; display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(46vw, 660px); margin-top: 10px; }
+.roster { --ts: 96px; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--ts), 1fr)); gap: 10px 12px; width: 100%; padding: 4px 8px; }
+.roster-info { font-family: sans-serif; font-size: 12.5px; line-height: 1.6; color: #e6dcff; background: var(--panel); border: 2px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 8px 14px; width: 100%; }
+.roster-info b { font-family: inherit; font-size: 15px; }
+.roster-info span { font-size: 11.5px; color: #bda8ea; }
+.tile { position: relative; aspect-ratio: 1 / 1; padding: 0; border: 3px solid #000c; border-radius: 12px; background: color-mix(in srgb, var(--cc) 35%, #120a24); overflow: hidden; transform: skewX(-5deg); box-shadow: 0 4px 0 #0008; color: #fff; transition: transform .08s; }
+.tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: skewX(5deg) scale(1.12); }
+.tile .tn { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 2px 3px; font-size: 12px; line-height: 1.1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: linear-gradient(180deg, transparent, #000c 55%); text-shadow: 0 1px 0 #000; }
+.tile::after { content: ""; position: absolute; inset: 0; border-radius: 9px; border: 4px solid var(--oc); border-right-color: var(--oc2); border-bottom-color: var(--oc2); pointer-events: none; }
+.tile:hover, .tile:focus-visible { transform: skewX(-5deg) scale(1.06); z-index: 2; outline: 2px solid var(--ac); outline-offset: 2px; }
+.tile:active { transform: skewX(-5deg) scale(0.96); }
+.tile .tb { position: absolute; top: 3px; padding: 1px 6px 2px; border-radius: 6px; font-size: 11px; font-style: italic; background: var(--pc); border: 2px solid #000; text-shadow: 0 1px 0 #0008; transform: skewX(5deg); }
+.tile .tb0 { left: 3px; }
+.tile .tb1 { right: 3px; }
+.tile.rnd { background: repeating-linear-gradient(135deg, #2a1c50 0 10px, #33225e 10px 20px); }
+.tile .q { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 900; font-style: italic; opacity: 0.85; padding-bottom: 12px; }
+.roster-hint { align-self: flex-end; font-family: sans-serif; font-size: 11px; color: #cbb8f0; opacity: 0.85; text-shadow: 0 1px 0 #000; padding-bottom: 6px; text-align: center; }
+.panel { cursor: pointer; }
+.panel.active { box-shadow: 0 0 0 3px #fff, 0 0 34px color-mix(in srgb, var(--pc) 80%, transparent); }
+.panel { overflow: visible; }
+.panel.active::after { content: "▼ えらび中"; position: absolute; left: 50%; top: -26px; transform: translateX(-50%); font-size: 13px; white-space: nowrap; color: #fff; background: var(--pc); border: 2px solid #fff; border-radius: 999px; padding: 1px 12px 2px; text-shadow: 0 1px 0 #0008; }
+.panel::before { content: ""; position: absolute; left: 0; top: 0; right: 0; height: 6px; background: var(--pc); border-radius: 14px 14px 0 0; }
 .panel .ph { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .panel .tag { font-size: 26px; font-style: italic; color: var(--pc); text-shadow: 0 2px 0 #000; }
 .panel .type { background: var(--pc); color: #fff; border: none; border-radius: 999px; padding: 6px 14px; font-size: 13px; white-space: nowrap; text-shadow: 0 1px 0 rgba(0,0,0,0.5); }
@@ -59,9 +82,9 @@ button { font-family: var(--font); cursor: pointer; }
 .panel .arrow { background: none; border: none; color: #fff; font-size: 30px; padding: 0 4px; opacity: 0.8; }
 .panel .arrow:hover { opacity: 1; transform: scale(1.15); }
 .panel .portrait { width: 84px; height: 84px; border-radius: 14px; border: 3px solid #fff3; background: #0008; object-fit: cover; }
-.panel .cname { flex: 1; }
+.panel .cname { flex: 1; min-width: 0; }
 .panel .cname .t { font-size: 12px; color: #cbb8f0; font-family: sans-serif; }
-.panel .cname .n { font-size: 30px; font-style: italic; line-height: 1.1; }
+.panel .cname .n { font-size: 22px; font-style: italic; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .panel .cname .e { font-size: 12px; letter-spacing: 0.3em; color: var(--cc); }
 .panel .desc { font-family: sans-serif; font-size: 12.5px; color: #e6dcff; margin: 10px 0 6px; line-height: 1.5; }
 .panel .sp { font-family: sans-serif; font-size: 11.5px; color: #bda8ea; line-height: 1.6; }
@@ -201,7 +224,19 @@ body.touch #timer { top: auto; bottom: 6px; font-size: 16px; }
   .rule button { padding: 2px 8px; font-size: 12px; }
   .panels { padding-bottom: 6px; gap: 10px; }
   .vs { font-size: 38px; }
-  .panel { padding: 8px 10px; border-radius: 12px; width: min(330px, 38vw); }
+  .panel { padding: 6px 10px; border-radius: 12px; width: min(300px, 36vw); }
+  .roster-wrap { margin-top: 4px; gap: 4px; width: min(50vw, 400px); }
+  .roster { --ts: 44px; gap: 5px 7px; padding: 2px 4px; }
+  .roster-info { display: none; }
+  .panel .cname .n { font-size: 17px; }
+  .tile { border-width: 2px; border-radius: 9px; }
+  .tile .tn { font-size: 9px; padding-top: 8px; }
+  .tile .tb { font-size: 9px; padding: 0 4px 1px; }
+  .tile .q { font-size: 26px; }
+  .roster-hint { display: none; }
+  .panel.active::after { font-size: 10px; top: -19px; padding: 0 8px 1px; }
+  .panel .cname .t, .panel .cname .e { display: none; }
+  .panel .arrow { font-size: 20px; }
   .panel .tag { font-size: 18px; }
   .panel .portrait { width: 52px; height: 52px; }
   .panel .cname .n { font-size: 20px; }
@@ -221,8 +256,7 @@ body.touch #timer { top: auto; bottom: 6px; font-size: 16px; }
 }
 @media (max-width: 900px) and (orientation: landscape) {
   .panels { flex-direction: row; align-items: flex-end; }
-  .panel { width: min(330px, 38vw); }
-  .vs { display: block; }
+  .panel { width: min(300px, 36vw); }
 }
 body.touch div.touch-only { display: block; }
 .touch-help { font-family: sans-serif; font-size: 13px; color: #fff; background: #ffffff14; padding: 8px 12px; border-radius: 10px; max-width: 760px; }

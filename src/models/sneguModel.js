@@ -6,12 +6,12 @@ import { gloss, basic, lathe, place, mesh, mergeStatic, joint, paramGeo, blobSha
 import { taperCapsule, disposeTree } from './common.js';
 
 const VARIANTS = [
-  { skin: '#d9b9aa', red: '#a82424', fur: '#e2dccc', hairA: '#289c86', hairB: '#0e4e70', water: 0x4cc8d4, tail: '#cfd4e0', wrap: '#22a4ae', gold: '#9a7020', belt: '#1c1c22', eye: '#1c5ea8', eye2: '#4cb0d8', ball: '#b82020', ice: 0x9fe4ff },
+  { skin: '#d9b9aa', red: '#a82424', fur: '#e2dccc', hairA: '#289c86', hairB: '#11636e', water: 0x4cc8d4, tail: '#cfd4e0', wrap: '#22a4ae', gold: '#9a7020', belt: '#1c1c22', eye: '#1c5ea8', eye2: '#4cb0d8', ball: '#b82020', ice: 0x9fe4ff },
   { skin: '#d9b9aa', red: '#2a4a9a', fur: '#d8dce8', hairA: '#c8ccdc', hairB: '#7c88b4', water: 0x9ab4ff, tail: '#cfd4e0', wrap: '#4a5cb0', gold: '#b4bcc8', belt: '#1c1c22', eye: '#7a3ac0', eye2: '#c89cf0', ball: '#3a5ac0', ice: 0xc8d4ff },
 ];
 
-export const SNEGU_HIP = 1.25;
-const SCALE = 0.82;
+export const SNEGU_HIP = 1.36;
+const SCALE = 0.78;
 
 function radial(pts) {
   const sm = new THREE.SplineCurve(pts.map(([r, y]) => new THREE.Vector2(r, y))).getPoints(200);
@@ -36,6 +36,7 @@ export function buildSnegu(variant = 0) {
   const std = (color, o = {}) => gloss(color, { rough: 0.8, metal: 0, env: 0.3, ...o });
   const skin = std(P.skin), red = std(P.red), fur = std(P.fur, { rough: 1 }), gold = gloss(P.gold, { rough: 0.4, metal: 0.6, env: 0.8 }), belt = std(P.belt), tailM = std(P.tail, { rough: 0.6 }), wrap = std(P.wrap), ball = std(P.ball, { rough: 0.5 });
   const hairM = std(P.hairA, { rough: 0.6 });
+  const starM = gloss('#c8a030', { rough: 0.4, metal: 0.5, env: 0.8 });
   const water = new THREE.MeshStandardMaterial({ color: P.water, roughness: 0.25, metalness: 0, envMapIntensity: 0.9, transparent: true, opacity: 0.78, emissive: new THREE.Color(P.water).multiplyScalar(0.25) });
   const ice = new THREE.MeshStandardMaterial({ color: P.ice, roughness: 0.15, metalness: 0.1, envMapIntensity: 1.3, transparent: true, opacity: 0.88, emissive: new THREE.Color(P.ice).multiplyScalar(0.35) });
   const flashMats = [skin, red, tailM, wrap, hairM];
@@ -44,13 +45,25 @@ export function buildSnegu(variant = 0) {
   const lock = (parent, mat, x, y, z, dx, dy, dz, len, r, flat = 0.6) => { const c = mesh(new THREE.ConeGeometry(r, len, 6), mat); tv.set(dx, dy, dz).normalize(); place(c, parent, x + tv.x * len * 0.5, y + tv.y * len * 0.5, z + tv.z * len * 0.5); c.quaternion.setFromUnitVectors(up, tv); c.scale.z = flat; return c; };
 
   const fig = new THREE.Group(); fig.userData.keep = true; fig.scale.setScalar(SCALE); root.add(fig);
+  // 曲線に沿って太さの変わる管（毛束や水の帯）。flat で断面をつぶす
+  const zA = new THREE.Vector3(0, 0, 1), tC = new THREE.Vector3(), tT = new THREE.Vector3(), tN = new THREE.Vector3(), tB = new THREE.Vector3();
+  const taperTube = (pts, rf, flat = 1, segU = 10, segV = 18) => {
+    const curve = new THREE.CatmullRomCurve3(pts.map(([x, y, z]) => new THREE.Vector3(x, y, z)));
+    return paramGeo(segU, segV, (u, v, q) => {
+      curve.getPoint(v, tC); curve.getTangent(v, tT); tN.crossVectors(tT, zA); if (tN.lengthSq() < 1e-6) tN.set(1, 0, 0); tN.normalize(); tB.crossVectors(tT, tN).normalize();
+      const r = rf(v), a = u * Math.PI * 2;
+      q.copy(tC).addScaledVector(tN, Math.cos(a) * r).addScaledVector(tB, Math.sin(a) * r * flat);
+    });
+  };
+
   const body = joint('body', fig, 0, SNEGU_HIP, 0); j.body = body;
   const hips = joint('hips', body); j.hips = hips;
   const torso = joint('torso', hips); j.torso = torso;
-  torso.scale.set(1.08, 1, 1.08); // 胴を太めに（頭は下で打ち消す）
+  torso.scale.set(1.16, 1.24, 1.16); // 胴を太めに（頭は下で打ち消す）
 
   // ---------- 腰と尾（脚のかわりの白い尾。legR・shinR の姿勢で振れる） ----------
   place(mesh(lathe([[0.235, 0.02], [0.235, -0.1], [0.19, -0.26], [0.13, -0.32]], 20), wrap), hips, 0, 0, 0, 0, 0, 0, [1, 1, 0.85]);
+  place(mesh(new THREE.TorusGeometry(0.2, 0.012, 5, 24), gloss(P.gold, { rough: 0.4, metal: 0.6, env: 0.8 })), hips, 0, -0.2, 0.01, Math.PI / 2 - 0.3, 0, 0, [1, 0.85, 1]);
   const tailW = [];
   const seg = (name, parent, y, len, r0, r1, rx) => {
     const g = joint(name, parent, 0, y, 0); if (name) { j[name] = g; base[name] = [rx, 0, 0]; } else g.rotation.x = rx;
@@ -59,15 +72,15 @@ export function buildSnegu(variant = 0) {
     const top = new THREE.Mesh(new THREE.SphereGeometry(r0, 12, 8), tailM); top.scale.z = 0.85; w.add(top);
     return w;
   };
-  const t1 = seg('legR', hips, -0.14, 0.4, 0.18, 0.13, 0.12);
-  const t2 = seg('shinR', t1, -0.4, 0.38, 0.13, 0.085, 0.3);
-  const t3 = seg('', t2, -0.38, 0.36, 0.085, 0.04, 0.75);
+  const t1 = seg('legR', hips, -0.14, 0.44, 0.215, 0.17, 0.12);
+  const t2 = seg('shinR', t1, -0.44, 0.42, 0.17, 0.115, 0.3);
+  const t3 = seg('', t2, -0.42, 0.4, 0.115, 0.05, 0.75);
   { // 尾びれ（平たく尖る）
-    for (const k of [-1, 1]) { const fin = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.32, 8), tailM); fin.scale.set(1.5, 1, 0.25); fin.position.set(k * 0.09, -0.47, 0); fin.rotation.set(Math.PI, 0, k * -0.55); t3.add(fin); }
+    for (const k of [-1, 1]) { const fin = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.38, 8), tailM); fin.scale.set(1.6, 1, 0.22); fin.position.set(k * 0.13, -0.53, 0); fin.rotation.set(Math.PI, 0, k * -0.55); t3.add(fin); }
     // 前の布の金の縁取り（V字）
-    for (const s of [-1, 1]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.3, 0.012), gold); b.position.set(s * 0.055, -0.14, 0.14); b.rotation.z = s * 0.33; b.rotation.x = 0.08; t1.add(b); }
+    for (const s of [-1, 1]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.3, 0.012), gold); b.position.set(s * 0.06, -0.16, 0.17); b.rotation.z = s * 0.33; b.rotation.x = 0.08; t1.add(b); }
   }
-  const tailTip = new THREE.Object3D(); tailTip.position.set(0, -0.62, 0); t3.add(tailTip);
+  const tailTip = new THREE.Object3D(); tailTip.position.set(0, -0.7, 0); t3.add(tailTip);
 
   // ---------- 胴（肩を出した赤い服。上下の縁は白い毛皮、黒い帯に金の留め具） ----------
   const skirtTex = canvasTex(256, 128, (g, w, h) => {
@@ -91,7 +104,7 @@ export function buildSnegu(variant = 0) {
 
   // ---------- 頭（大きな青い目。顔は絵） ----------
   const head = joint('head', torso, 0, 0.73, 0.0); j.head = head;
-  head.scale.set(1.1 / 1.08, 1.1, 1.1 / 1.08);
+  head.scale.set(1.02 / 1.16, 1.02 / 1.24, 1.02 / 1.16);
   const HH = 0.36, HZ = 0.95;
   const H = radial([[0.0, HH], [0.115, HH - 0.015], [0.172, 0.27], [0.18, 0.18], [0.148, 0.1], [0.085, 0.035], [0.025, 0.002], [0.0, 0.0]]);
   const faceTex = canvasTex(1024, 512, (g, w, h) => {
@@ -107,15 +120,15 @@ export function buildSnegu(variant = 0) {
       g.save(); g.translate(X(s * 0.105), Y(0.105)); g.scale(0.045 * U, 0.025 * VS(0.105)); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 1, 0, 7); g.fill(); g.restore();
       // 目: 白目、青い瞳（上が濃く下が明るい）、黒い瞳孔、光
       const ex = X(s * 0.074), ey = Y(0.152), vs = VS(0.152);
-      g.fillStyle = '#f8f8fa'; g.beginPath(); g.ellipse(ex, ey, 0.026 * U, 0.028 * vs, 0, 0, 7); g.fill();
-      const ig = g.createLinearGradient(0, ey - 0.026 * vs, 0, ey + 0.026 * vs); ig.addColorStop(0, '#102a60'); ig.addColorStop(0.45, P.eye); ig.addColorStop(1, P.eye2);
-      g.fillStyle = ig; g.beginPath(); g.ellipse(ex, ey + 0.001 * vs, 0.021 * U, 0.026 * vs, 0, 0, 7); g.fill();
-      g.fillStyle = '#081430'; g.beginPath(); g.ellipse(ex, ey, 0.009 * U, 0.011 * vs, 0, 0, 7); g.fill();
+      g.fillStyle = '#f8f8fa'; g.beginPath(); g.ellipse(ex, ey, 0.025 * U, 0.022 * vs, 0, 0, 7); g.fill();
+      const ig = g.createLinearGradient(0, ey - 0.021 * vs, 0, ey + 0.021 * vs); ig.addColorStop(0, '#102a60'); ig.addColorStop(0.45, P.eye); ig.addColorStop(1, P.eye2);
+      g.fillStyle = ig; g.beginPath(); g.ellipse(ex, ey + 0.001 * vs, 0.019 * U, 0.021 * vs, 0, 0, 7); g.fill();
+      g.fillStyle = '#081430'; g.beginPath(); g.ellipse(ex, ey, 0.008 * U, 0.009 * vs, 0, 0, 7); g.fill();
       g.fillStyle = '#fff'; g.beginPath(); g.ellipse(ex - 0.008 * U, ey - 0.013 * vs, 0.006 * U, 0.007 * vs, 0, 0, 7); g.fill();
       // まつ毛（上は太く外へ跳ねる）、下まつ毛、眉
-      g.strokeStyle = '#1a1c2a'; g.lineCap = 'round'; g.lineWidth = 0.008 * U;
-      g.beginPath(); g.moveTo(X(s * 0.046), Y(0.17)); g.quadraticCurveTo(X(s * 0.074), Y(0.19), X(s * 0.106), Y(0.174)); g.stroke();
-      g.strokeStyle = 'rgba(26,28,42,0.5)'; g.lineWidth = 0.003 * U; g.beginPath(); g.moveTo(X(s * 0.054), Y(0.124)); g.quadraticCurveTo(X(s * 0.074), Y(0.119), X(s * 0.096), Y(0.126)); g.stroke();
+      g.strokeStyle = '#1a1c2a'; g.lineCap = 'round'; g.lineWidth = 0.006 * U;
+      g.beginPath(); g.moveTo(X(s * 0.048), Y(0.17)); g.quadraticCurveTo(X(s * 0.076), Y(0.182), X(s * 0.106), Y(0.164)); g.stroke();
+      g.strokeStyle = 'rgba(26,28,42,0.5)'; g.lineWidth = 0.003 * U; g.beginPath(); g.moveTo(X(s * 0.056), Y(0.13)); g.quadraticCurveTo(X(s * 0.074), Y(0.126), X(s * 0.094), Y(0.132)); g.stroke();
       g.strokeStyle = P.hairB; g.lineWidth = 0.005 * U; g.beginPath(); g.moveTo(X(s * 0.035), Y(0.228)); g.quadraticCurveTo(X(s * 0.07), Y(0.24), X(s * 0.108), Y(0.226)); g.stroke();
     }
     // 小さな鼻と口
@@ -130,7 +143,7 @@ export function buildSnegu(variant = 0) {
   for (const s of [-1, 1]) lock(head, skin, s * 0.17, 0.14, -0.01, s, 0.25, -0.35, 0.15, 0.04, 0.4);
   // 前髪（額にかぶさる層。縁はぎざぎざ）と、顔の両脇に垂れる房
   {
-    const edge = [[-1, 0.02], [-0.86, 0.13], [-0.7, 0.05], [-0.52, 0.2], [-0.36, 0.165], [-0.18, 0.205], [-0.02, 0.172], [0.16, 0.208], [0.32, 0.168], [0.5, 0.2], [0.68, 0.05], [0.84, 0.13], [1, 0.02]];
+    const edge = [[-1, 0.02], [-0.86, 0.13], [-0.7, 0.05], [-0.56, 0.2], [-0.24, 0.212], [0.02, 0.182], [0.06, 0.218], [0.34, 0.2], [0.38, 0.226], [0.6, 0.19], [0.7, 0.05], [0.84, 0.13], [1, 0.02]];
     const yb = (u) => { for (let i = 1; i < edge.length; i++) if (u <= edge[i][0]) { const [u0, y0] = edge[i - 1], [u1, y1] = edge[i]; return y0 + (y1 - y0) * (u - u0) / (u1 - u0); } return 0.1; };
     const hg = paramGeo(56, 10, (u, v, p) => {
       const uu = u * 2 - 1, y = 0.345 + (yb(uu) - 0.345) * v;
@@ -147,9 +160,10 @@ export function buildSnegu(variant = 0) {
     lock(head, hairM, s * 0.15, 0.14, 0.1, s * 0.55, -1, 0.1, 0.16, 0.035, 0.5);
   }
 
+  place(mesh(starGeo(0.07), starM), head, -0.165, 0.245, 0.1, 0, -0.9, 0.2);
   // ---------- 帽子（白い毛皮の縁、先が横へ垂れる赤い三角帽、先に白い玉。前に金の星） ----------
   {
-    const hat = new THREE.Group(); place(hat, head, 0.01, 0.275, -0.02, -0.2, 0, -0.22, 0.95);
+    const hat = new THREE.Group(); place(hat, head, 0.01, 0.29, -0.05, -0.36, 0, -0.22, 1.08);
     place(mesh(new THREE.TorusGeometry(0.17, 0.066, 8, 24), fur), hat, 0, 0, 0, Math.PI / 2, 0, 0, [1.02, 1, 1]);
     const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.0, 0.12, -0.01), new THREE.Vector3(0.09, 0.19, -0.03), new THREE.Vector3(0.22, 0.13, -0.04), new THREE.Vector3(0.27, 0.0, -0.03)]);
     const zAx = new THREE.Vector3(0, 0, 1), C = new THREE.Vector3(), T = new THREE.Vector3(), N = new THREE.Vector3(), Bn = new THREE.Vector3();
@@ -160,13 +174,12 @@ export function buildSnegu(variant = 0) {
     });
     place(mesh(hg, std(P.red, { side: THREE.DoubleSide })), hat, 0, 0, 0);
     place(mesh(new THREE.SphereGeometry(0.055, 10, 8), fur), hat, 0.275, -0.04, -0.03);
-    place(mesh(starGeo(0.075), gold), hat, -0.2, 0.02, 0.17, 0, -0.75, 0.25);
   }
 
   // ---------- 後ろ髪（足もとまで届く長い髪。裾へ向かって広がり、赤い玉と金の星を飾る） ----------
   const hairBack = new THREE.Group(); hairBack.userData.keep = true; place(hairBack, head, 0, 0.2, -0.08);
   {
-    const L = 1.32;
+    const L = 1.68;
     const hairTex = canvasTex(256, 512, (g, w, h) => {
       const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, P.hairA); gr.addColorStop(0.2, P.hairA); gr.addColorStop(0.85, P.hairB); gr.addColorStop(1, P.hairB);
       g.fillStyle = gr; g.fillRect(0, 0, w, h);
@@ -178,20 +191,20 @@ export function buildSnegu(variant = 0) {
     // 表面の点（u: -1〜1 で一周、v: 0〜1 で根元から毛先）。下へ行くほど太く、後ろへ流れ、毛先で閉じる
     const surf = (uu, v, p, off = 0) => {
       const a = uu * Math.PI, end = v > 0.82 ? Math.sqrt(Math.max(0, 1 - ((v - 0.82) / 0.18) ** 2)) : 1;
-      const rx = (0.16 + 0.34 * Math.pow(v, 0.75)) * (0.25 + 0.75 * end) + off, rz = (0.12 + 0.15 * v) * (0.25 + 0.75 * end) + off;
+      const rx = (0.16 + 0.44 * Math.pow(v, 0.8)) * (0.25 + 0.75 * end) + off, rz = (0.12 + 0.24 * v) * (0.25 + 0.75 * end) + off;
       const wave = 0.03 * Math.sin(uu * 14) * v;
-      p.set(Math.sin(a) * (rx + wave), -L * v + 0.05, -0.06 - 0.36 * Math.pow(v, 1.15) - Math.cos(a) * (rz + wave));
+      p.set(Math.sin(a) * (rx + wave) + 0.1 * v * v, -L * v + 0.05, -0.06 - 0.36 * Math.pow(v, 1.15) - Math.cos(a) * (rz + wave));
     };
     hairBack.add(new THREE.Mesh(paramGeo(44, 20, (u, v, p) => surf(u * 2 - 1, v, p)), backM));
     const q = new THREE.Vector3();
-    // 外へ跳ねる毛先
-    for (const [uu, v, len] of [[-0.4, 0.84, 0.3], [0.4, 0.86, 0.3], [-0.14, 0.97, 0.26], [0.16, 0.97, 0.26]]) {
-      surf(uu, v, q, -0.04);
-      const c = new THREE.Mesh(new THREE.ConeGeometry(0.09, len, 6), backM); tv.set(Math.sin(uu * Math.PI) * 0.9, -0.8, -0.2 - Math.abs(Math.cos(uu * Math.PI)) * 0.3).normalize();
-      c.position.copy(q).addScaledVector(tv, len * 0.4); c.quaternion.setFromUnitVectors(up, tv); c.scale.z = 0.5; hairBack.add(c);
-    }
+    // 裾と途中から外へ跳ねる細い房
+    for (const [pts, r0] of [
+      [[[0.42, -1.27, -0.50], [0.62, -1.57, -0.55], [0.84, -1.73, -0.50]], 0.07],
+      [[[-0.34, -1.37, -0.53], [-0.5, -1.65, -0.56], [-0.66, -1.83, -0.52]], 0.065],
+      [[[0.46, -0.66, -0.34], [0.66, -0.86, -0.36], [0.84, -1.02, -0.32]], 0.05],
+    ]) hairBack.add(new THREE.Mesh(taperTube(pts, (v) => r0 * Math.pow(1 - v, 0.8) + 0.006, 0.45), backM));
     for (const [uu, v] of [[-0.3, 0.32], [0.33, 0.48], [-0.1, 0.72], [0.3, 0.84]]) { surf(uu, v, q, 0.045); const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 10), ball); m.position.copy(q); hairBack.add(m); }
-    for (const [uu, v] of [[0.12, 0.22], [-0.16, 0.45], [0.08, 0.62], [-0.3, 0.86]]) { surf(uu, v, q, 0.03); const m = new THREE.Mesh(starGeo(0.06), gold); m.position.copy(q); m.lookAt(q.x * 3, q.y, q.z * 3 - 1); hairBack.add(m); }
+    for (const [uu, v] of [[0.12, 0.22], [-0.16, 0.45], [0.08, 0.62], [-0.3, 0.86]]) { surf(uu, v, q, 0.03); const m = new THREE.Mesh(starGeo(0.06), starM); m.position.copy(q); m.lookAt(q.x * 3, q.y, q.z * 3 - 1); hairBack.add(m); }
   }
 
   // ---------- 腕（肩は肌、その先は水でできた半透明の腕） ----------
@@ -236,6 +249,25 @@ export function buildSnegu(variant = 0) {
     bow.position.set(0, -0.03, 0);
   }
 
+  // ---------- 体を取り巻く水の帯と雪の結晶（ゆっくり回る） ----------
+  const aura = new THREE.Group(); aura.userData.keep = true; place(aura, body, 0, 0.15, 0);
+  {
+    const wm = new THREE.MeshBasicMaterial({ color: new THREE.Color(P.water).lerp(new THREE.Color(0xffffff), 0.35), transparent: true, opacity: 0.4, side: THREE.DoubleSide, depthWrite: false });
+    for (const [a0, y0, y1, r0] of [[0, -0.75, 0.55, 0.62], [Math.PI, -0.45, 0.75, 0.5]]) {
+      const pts = [];
+      for (let i = 0; i <= 14; i++) { const t = i / 14, a = a0 + t * Math.PI * 2.4, r = r0 * (0.75 + 0.35 * Math.sin(t * Math.PI)); pts.push([Math.sin(a) * r, y0 + (y1 - y0) * t, Math.cos(a) * r]); }
+      aura.add(new THREE.Mesh(taperTube(pts, (v) => 0.11 * Math.sin(Math.PI * v) + 0.004, 0.12, 6, 60), wm));
+    }
+    const flake = canvasTex(64, 64, (g, w, h) => {
+      g.clearRect(0, 0, w, h); g.translate(w / 2, h / 2); g.strokeStyle = '#fff'; g.lineWidth = 3; g.lineCap = 'round';
+      for (let i = 0; i < 6; i++) { g.rotate(Math.PI / 3); g.beginPath(); g.moveTo(0, 0); g.lineTo(0, -26); g.moveTo(0, -14); g.lineTo(7, -21); g.moveTo(0, -14); g.lineTo(-7, -21); g.stroke(); }
+    });
+    for (const [a, y, r, sc] of [[0.6, 0.5, 0.75, 0.16], [2.4, -0.4, 0.8, 0.13], [4.0, 0.15, 0.7, 0.11], [5.3, -0.8, 0.6, 0.14]]) {
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: flake, color: 0xdff6ff, transparent: true, opacity: 0.9, depthWrite: false }));
+      sp.position.set(Math.sin(a) * r, y, Math.cos(a) * r); sp.scale.setScalar(sc); aura.add(sp);
+    }
+  }
+
   mergeStatic(root);
 
   const baseEmissive = flashMats.map((m) => m.emissive.clone());
@@ -255,6 +287,7 @@ export function buildSnegu(variant = 0) {
       const fwd = (ctx.vx || 0) * Math.sin(yaw);
       const want = Math.max(-0.15, Math.min(0.8, fwd * 3.5 + (ctx.vy < 0 ? -ctx.vy * 1.8 : 0))) + Math.sin(t * 1.8) * 0.03;
       if (ctx.snap) hairBack.rotation.x = want; else hairBack.rotation.x += (want - hairBack.rotation.x) * 0.1;
+      aura.rotation.y = t * 1.1;
       for (let i = 0; i < tailW.length; i++) tailW[i].rotation.x = Math.sin(t * 2.4 - i * 0.9) * 0.09 + (i ? Math.max(-0.2, Math.min(0.5, fwd * 2)) : 0);
     },
     setWeapon(kind) { blade.visible = kind === 'blade'; bow.visible = kind === 'bow'; },

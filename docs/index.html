@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>大乱闘スマママブラザーズ</title>
-<link rel="stylesheet" href="style.css?v=cf519af0b0">
+<link rel="stylesheet" href="style.css?v=7195f8f029">
 </head>
 <body>
 <div id="app">
@@ -56,13 +56,17 @@
         <div class="rule"><span>画質</span><button id="qualityBtn" data-act="quality">高</button></div>
       </div>
     </div>
+    <div class="roster-wrap">
+      <div class="roster" id="roster"></div>
+      <div class="roster-info" id="rosterInfo"></div>
+    </div>
     <div class="panels">
-      <div class="panel" data-slot="0"></div>
-      <div class="vs">VS</div>
-      <div class="panel" data-slot="1"></div>
+      <div class="panel" data-slot="0" data-act="slot"></div>
+      <div class="roster-hint">下のパネルをえらんでから、ファイターをえらぶ</div>
+      <div class="panel" data-slot="1" data-act="slot"></div>
     </div>
     <div class="sel-footer">
-      <div class="keys-hint pc-only">P1: A / D でキャラ変更　P2: ← / → でキャラ変更　Enter: バトル開始</div>
+      <div class="keys-hint pc-only">P1: W A S D でえらぶ　P2: 矢印キーでえらぶ　Enter: バトル開始</div>
       <button class="big-btn go" data-act="fight">バトル開始！</button>
     </div>
   </section>
@@ -124,6 +128,6 @@
   <div id="rotate"><div class="phone"></div><p>端末を横向きにしてください</p></div>
   <div id="loading">LOADING...</div>
 </div>
-<script type="module" src="app.js?v=cf519af0b0"></script>
+<script type="module" src="app.js?v=7195f8f029"></script>
 </body>
 </html>

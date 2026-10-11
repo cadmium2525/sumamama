@@ -63,13 +63,17 @@ if (/\.github\.io$/.test(location.hostname) && !/\/docs\//.test(location.pathnam
         <div class="rule"><span>画質</span><button id="qualityBtn" data-act="quality">高</button></div>
       </div>
     </div>
+    <div class="roster-wrap">
+      <div class="roster" id="roster"></div>
+      <div class="roster-info" id="rosterInfo"></div>
+    </div>
     <div class="panels">
-      <div class="panel" data-slot="0"></div>
-      <div class="vs">VS</div>
-      <div class="panel" data-slot="1"></div>
+      <div class="panel" data-slot="0" data-act="slot"></div>
+      <div class="roster-hint">下のパネルをえらんでから、ファイターをえらぶ</div>
+      <div class="panel" data-slot="1" data-act="slot"></div>
     </div>
     <div class="sel-footer">
-      <div class="keys-hint pc-only">P1: A / D でキャラ変更　P2: ← / → でキャラ変更　Enter: バトル開始</div>
+      <div class="keys-hint pc-only">P1: W A S D でえらぶ　P2: 矢印キーでえらぶ　Enter: バトル開始</div>
       <button class="big-btn go" data-act="fight">バトル開始！</button>
     </div>
   </section>

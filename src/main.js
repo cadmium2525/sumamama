@@ -125,6 +125,7 @@ class App {
       stocks: 3,
       stage: 'battlefield',
       ball: true,
+      active: 0, // ファイター一覧でえらんでいる側
     };
     this.previews = [];
     this.portraits = {};
@@ -197,7 +198,7 @@ class App {
     const n = this.previews.length;
     this.previews.forEach((p, i) => {
       if (this.mode === 'results') { p.x = 1.4; p.yaw = -0.35; }
-      else if (this.mode === 'select') { p.x = i === 0 ? -2.0 : 2.0; p.yaw = i === 0 ? 0.55 : -0.55; }
+      else if (this.mode === 'select') { p.x = i === 0 ? -3.0 : 3.0; p.yaw = i === 0 ? 0.6 : -0.6; }
       else { p.x = i === 0 ? -2.3 : 2.3; p.yaw = i === 0 ? 0.5 : -0.5; }
     });
   }
@@ -380,6 +381,21 @@ class App {
         this.cycleChar(s, d);
         break;
       }
+      case 'slot': {
+        // 左右のパネルをえらぶと、一覧でえらぶ側が切りかわる
+        const s = +el.dataset.slot;
+        if (this.sel.active !== s) { this.sel.active = s; audio.menuMove(); this.renderSelectPanels(); }
+        break;
+      }
+      case 'pick': {
+        const s = this.sel.active;
+        const id = el.dataset.char === 'random' ? CHAR_LIST[Math.floor(Math.random() * CHAR_LIST.length)].id : el.dataset.char;
+        P[s].char = id;
+        audio.menuOk();
+        this.renderSelectPanels();
+        this.refreshSelectPreviews();
+        break;
+      }
       case 'type': {
         const s = +el.dataset.slot;
         P[s].type = P[s].type === 'human' ? 'cpu' : 'human';
@@ -396,7 +412,8 @@ class App {
   cycleChar(slot, d) {
     const P = this.sel.players;
     const i = CHAR_LIST.findIndex((c) => c.id === P[slot].char);
-    P[slot].char = CHAR_LIST[(i + d + CHAR_LIST.length) % CHAR_LIST.length].id;
+    P[slot].char = CHAR_LIST[(i + d + CHAR_LIST.length * 4) % CHAR_LIST.length].id;
+    this.sel.active = slot;
     audio.menuMove();
     this.renderSelectPanels();
     this.refreshSelectPreviews();
@@ -408,8 +425,21 @@ class App {
     $('#stageBtn').textContent = this.sel.stage === 'battlefield' ? '月夜の聖域' : '月夜の聖域・終点';
     $('#ballBtn').textContent = this.sel.ball ? 'あり' : 'なし';
     $('#qualityBtn').textContent = this.R.quality === 'high' ? '高' : '軽量';
+    // ファイター一覧（えらんだ側の札がタイルに付く）
+    const tag = (s) => (P[s].type === 'cpu' ? 'CPU' : 'P' + (s + 1));
+    $('#roster').style.setProperty('--ac', PLAYER_CSS[this.sel.active]);
+    $('#roster').innerHTML = CHAR_LIST.map((def) => {
+      const on = [0, 1].filter((s) => P[s].char === def.id);
+      const oc = on.length ? PLAYER_CSS[on[0]] : 'transparent', oc2 = on.length ? PLAYER_CSS[on[on.length - 1]] : 'transparent';
+      return `<button class="tile" data-act="pick" data-char="${def.id}" style="--cc:${def.css};--oc:${oc};--oc2:${oc2}">
+        <img src="${this.portrait(def.id, 0)}" alt="">
+        <span class="tn">${def.name}</span>
+        ${on.map((s) => `<span class="tb tb${s}" style="--pc:${PLAYER_CSS[s]}">${tag(s)}</span>`).join('')}
+      </button>`;
+    }).join('') + '<button class="tile rnd" data-act="pick" data-char="random" style="--cc:#8a7ab8;--oc:transparent;--oc2:transparent"><span class="q">？</span><span class="tn">おまかせ</span></button>';
     document.querySelectorAll('.panel').forEach((el) => {
       const s = +el.dataset.slot;
+      el.classList.toggle('active', s === this.sel.active);
       const p = P[s];
       const def = CHARS[p.char];
       const v = s === 1 && P[0].char === P[1].char ? 1 : 0;
@@ -426,10 +456,11 @@ class App {
           <img class="portrait" src="${this.portrait(p.char, v)}">
           <div class="cname"><div class="t">${def.title}</div><div class="n">${def.name}</div><div class="e">${def.en}</div></div>
           <button class="arrow" data-act="char" data-slot="${s}" data-d="1">▶</button>
-        </div>
-        <div class="desc">${def.desc}</div>
-        <div class="sp">必殺ワザ: ${def.specials.join(' / ')}</div>`;
+        </div>`;
     });
+    // えらんでいる側のファイターの説明
+    const ad = CHARS[P[this.sel.active].char];
+    $('#rosterInfo').innerHTML = `<b style="color:${ad.css}">${ad.name}</b>　${ad.desc}<br><span>必殺ワザ: ${ad.specials.join(' / ')}</span>`;
   }
 
   // ---------- 入力（メニュー） ----------
@@ -449,10 +480,19 @@ class App {
         if (ok || kb.take('Space')) this.action('start');
         break;
       case 'select':
-        if (kb.take('KeyA') || padL) this.cycleChar(0, -1);
-        if (kb.take('KeyD') || padR) this.cycleChar(0, 1);
-        if (kb.take('ArrowLeft')) this.cycleChar(1, -1);
-        if (kb.take('ArrowRight')) this.cycleChar(1, 1);
+        {
+          // 一覧の列数（上下の移動に使う）
+          const tiles = document.querySelectorAll('#roster .tile');
+          let cols = 1; while (cols < tiles.length && tiles[cols].offsetTop === tiles[0].offsetTop) cols++;
+          if (kb.take('KeyA') || padL) this.cycleChar(0, -1);
+          if (kb.take('KeyD') || padR) this.cycleChar(0, 1);
+          if (kb.take('KeyW')) this.cycleChar(0, -cols);
+          if (kb.take('KeyS')) this.cycleChar(0, cols);
+          if (kb.take('ArrowLeft')) this.cycleChar(1, -1);
+          if (kb.take('ArrowRight')) this.cycleChar(1, 1);
+          if (kb.take('ArrowUp')) this.cycleChar(1, -cols);
+          if (kb.take('ArrowDown')) this.cycleChar(1, cols);
+        }
         if (ok) this.action('fight');
         else if (esc) this.action('back');
         break;
