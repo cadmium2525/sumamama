@@ -290,6 +290,16 @@ export class CpuController {
       if (op.state !== 'dizzy' && op.grounded && adx > 1.6 && adx < 4.4 && chance(0.4)) { this.sx = me.facing === dir ? 0 : dir * 0.3; this.sy = 0; this.press('special'); this.busy = 40; return; }
       if (adx > 2.2 && adx < 4 && chance(0.06)) { this.sx = dir; this.sy = 0; this.press('special'); this.busy = 40; return; }
     }
+    // スネグーラチカ: 離れた相手には氷の矢
+    if (me.def.id === 'snegu' && adx > 3.6 && Math.abs(adx) < 9 && Math.abs(dy) < 1.2 && chance(0.15)) {
+      this.sx = me.facing === dir ? 0 : dir * 0.3; this.sy = 0; this.press('special', chance(0.5) ? randi(10, 40) : 1); this.busy = 30;
+      return;
+    }
+    // スネグーラチカ: 中距離の地上の相手には、つららを落とす
+    if (me.def.id === 'snegu' && me.grounded && op.grounded && adx > 1.4 && adx < 4.2 && Math.abs(dy) < 1.5 && chance(0.12)) {
+      this.sx = me.facing === dir ? 0 : dir * 0.3; this.sy = -1; this.press('special'); this.busy = 45; this.after(() => { this.sy = 0; }, 3);
+      return;
+    }
     // ドラゴン: 中距離で火炎ブレスを吐き続ける
     if (me.def.id === 'dragon' && adx > 1.2 && adx < 3.4 && Math.abs(dy) < 1 && chance(0.22)) {
       this.sx = me.facing === dir ? 0 : dir * 0.3; this.sy = 0;

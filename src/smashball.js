@@ -152,7 +152,7 @@ export function makeSolarWave(color = 0xffd460, core = 0xffffff) {
 }
 
 export function fsLabel(def) {
-  return { illumine: 'エターナル・エクリプス', dullahan: 'ソーラー・ジャッジメント', dragon: 'ドラゴン・インフェルノ', doros: '魔獣ドロス', hamu: 'メガトン・ガス' }[def.id] || '最後の切りふだ';
+  return { illumine: 'エターナル・エクリプス', dullahan: 'ソーラー・ジャッジメント', dragon: 'ドラゴン・インフェルノ', doros: '魔獣ドロス', hamu: 'メガトン・ガス', snegu: 'ダイヤモンドダスト' }[def.id] || '最後の切りふだ';
 }
 
 export { sign };

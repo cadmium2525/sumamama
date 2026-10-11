@@ -56,6 +56,13 @@ const SHOTS = {
     back: { ref: 18, crop: [0, 0, 1485, 2000], cx: 0, cy: 1.15, w: 1.71, yaw: Math.PI, anim: 'idle', pw: 520 },
     wide: { ref: 0, crop: [0, 0, 1000, 1000], cx: 0.3, cy: 1.2, w: 3.4, yaw: Math.PI / 2, anim: 'idle', pw: 420 },
   },
+  snegu: {
+    face: { ref: 23, crop: [520, 130, 500, 440], cx: 0, cy: 1.95, w: 0.72, yaw: 0, anim: 'idle' },
+    front: { ref: 23, crop: [0, 0, 1434, 2000], cx: 0, cy: 0.95, w: 2.05, yaw: 0, anim: 'idle', pw: 520 },
+    side: { ref: 21, crop: [0, 0, 1882, 2000], cx: -0.25, cy: 1.05, w: 2.6, yaw: Math.PI / 2, anim: 'idle', pw: 600 },
+    back: { ref: 20, crop: [0, 0, 1446, 2000], cx: 0, cy: 1.0, w: 2.05, yaw: Math.PI, anim: 'idle', pw: 520 },
+    wide: { ref: 0, crop: [0, 0, 1000, 1000], cx: 0.5, cy: 1.4, w: 4.2, yaw: Math.PI / 2, anim: 'idle', pw: 420 },
+  },
 };
 
 const q = new URLSearchParams(location.search);
@@ -89,6 +96,7 @@ async function draw(sname) {
   let pose = q.get('pose') ? def.anims[q.get('pose')](0) : (shot.anim ? def.anims[shot.anim](0) : (shot.pose || {}));
   if (mv) { const a = def.moves[mv.m].anim; pose = track(typeof a === 'function' ? a({}) : a, mv.f); }
   if (m.setSword) m.setSword(!!mv && /smash/.test(mv.m));
+  if (m.setWeapon) m.setWeapon(mv ? (mv.m === 'neutralb' ? 'bow' : /tilt|smash|air/.test(mv.m) && !/dtilt|usmash|dsmash|nair|bair|dair/.test(mv.m) ? 'blade' : null) : (q.get('wp') || null));
   // ov=JSON で姿勢の一部を上書きして試せる
   const ov = window.ov || (q.get('ov') ? JSON.parse(q.get('ov')) : null);
   applyPose(m.rig, {}, 1);

@@ -52,6 +52,20 @@ class Projectile {
       battle.scene.add(g);
       return;
     }
+    if (o.kind === 'ice') {
+      // 氷のつぶて／矢（進む向きに尖った結晶）
+      const g = new THREE.Group();
+      const m = new THREE.Mesh(new THREE.OctahedronGeometry(1, 0), new THREE.MeshBasicMaterial({ color: new THREE.Color(o.color).lerp(new THREE.Color(0xffffff), 0.45) }));
+      m.scale.set(0.45 + o.r * 1.6, o.r * 0.55, o.r * 0.55);
+      const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTexture(), color: o.color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      glow.scale.setScalar(0.6 + o.r * 2.5);
+      g.add(m, glow);
+      g.position.set(o.x, o.y, 0.25);
+      g.rotation.z = Math.atan2(o.vy, o.vx);
+      this.mesh = g;
+      battle.scene.add(g);
+      return;
+    }
     if (o.kind === 'gas') {
       // ガスの雲（ゆっくり広がりながら漂う。当たるとふらふらになる）
       const g = new THREE.Group();
@@ -97,6 +111,11 @@ class Projectile {
       this.r = Math.min(this.rMax || 0.7, this.r + 0.03);
       if (this.age % 3 === 0) this.b.effects.spawn({ x: this.x, y: this.y + 0.1, z: 0.2, vy: 0.015, life: 18, size: this.r * 0.8, size1: 0.1, color: 0x3a2a2a, additive: false, opacity: 0.35 });
       if (this.life <= 0 || insideSolid(this.x, this.y)) this.kill(false);
+      return;
+    }
+    if (this.kind === 'ice') {
+      if (this.age % 2 === 0) this.b.effects.sparkle(this.x - this.vx, this.y - this.vy, this.age % 4 ? this.color : 0xffffff, 1, 0.2);
+      if (this.life <= 0 || insideSolid(this.x, this.y) || Math.abs(this.x) > 30) this.kill(true);
       return;
     }
     if (this.kind === 'gas') {
@@ -149,7 +168,7 @@ class Projectile {
       }
       return;
     }
-    if (this.kind === 'arrow') return;
+    if (this.kind === 'arrow' || this.kind === 'ice') return;
     if (this.shell) this.shell.scale.setScalar(this.r * (1 + Math.sin(this.age * 0.6) * 0.08));
     else this.mesh.scale.set(1, 1 + Math.sin(this.age * 0.5) * 0.05, 1);
   }
