@@ -6,7 +6,7 @@ import { gloss, basic, lathe, place, mesh, mergeStatic, joint, paramGeo, blobSha
 import { taperCapsule, disposeTree } from './common.js';
 
 const VARIANTS = [
-  { skin: '#d9b9aa', red: '#a82424', fur: '#e2dccc', hairA: '#289c86', hairB: '#0d4f5a', water: 0x4cc8d4, tail: '#cfd4e0', wrap: '#22a4ae', gold: '#9a7020', belt: '#1c1c22', eye: '#1c5ea8', eye2: '#4cb0d8', ball: '#b82020', ice: 0x9fe4ff },
+  { skin: '#d9b9aa', red: '#a82424', fur: '#e2dccc', hairA: '#289c86', hairB: '#0a4450', water: 0x4cc8d4, tail: '#cfd4e0', wrap: '#22a4ae', gold: '#9a7020', belt: '#1c1c22', eye: '#1c5ea8', eye2: '#4cb0d8', ball: '#b82020', ice: 0x9fe4ff },
   { skin: '#d9b9aa', red: '#2a4a9a', fur: '#d8dce8', hairA: '#c8ccdc', hairB: '#7c88b4', water: 0x9ab4ff, tail: '#cfd4e0', wrap: '#4a5cb0', gold: '#b4bcc8', belt: '#1c1c22', eye: '#7a3ac0', eye2: '#c89cf0', ball: '#3a5ac0', ice: 0xc8d4ff },
 ];
 
@@ -163,9 +163,9 @@ export function buildSnegu(variant = 0) {
   place(mesh(starGeo(0.07), starM), head, -0.185, 0.265, 0.07, 0, -1.0, 0.2);
   // ---------- 帽子（白い毛皮の縁、先が横へ垂れる赤い三角帽、先に白い玉。前に金の星） ----------
   {
-    const hat = new THREE.Group(); place(hat, head, 0.01, 0.275, -0.05, -0.36, 0, -0.22, 1.04);
-    place(mesh(new THREE.TorusGeometry(0.17, 0.055, 8, 24), fur), hat, 0, 0, 0, Math.PI / 2, 0, 0, [1.02, 1, 1]);
-    const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.0, 0.1, -0.01), new THREE.Vector3(0.09, 0.15, -0.03), new THREE.Vector3(0.22, 0.1, -0.04), new THREE.Vector3(0.27, -0.02, -0.03)]);
+    const hat = new THREE.Group(); place(hat, head, 0.01, 0.275, -0.05, -0.36, 0, -0.22, 1.2);
+    place(mesh(new THREE.TorusGeometry(0.165, 0.06, 8, 24), fur), hat, 0, 0, 0, Math.PI / 2, 0, 0, [1.02, 1, 1]);
+    const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.0, 0.1, -0.01), new THREE.Vector3(0.09, 0.15, -0.03), new THREE.Vector3(0.23, 0.09, -0.04), new THREE.Vector3(0.29, -0.06, -0.03)]);
     const zAx = new THREE.Vector3(0, 0, 1), C = new THREE.Vector3(), T = new THREE.Vector3(), N = new THREE.Vector3(), Bn = new THREE.Vector3();
     const hg = paramGeo(18, 14, (u, v, p) => {
       curve.getPoint(v, C); curve.getTangent(v, T); N.crossVectors(T, zAx).normalize(); Bn.crossVectors(T, N).normalize();
@@ -173,40 +173,48 @@ export function buildSnegu(variant = 0) {
       p.copy(C).addScaledVector(N, Math.cos(a) * r).addScaledVector(Bn, Math.sin(a) * r);
     });
     place(mesh(hg, std(P.red, { side: THREE.DoubleSide })), hat, 0, 0, 0);
-    place(mesh(new THREE.SphereGeometry(0.055, 10, 8), fur), hat, 0.275, -0.06, -0.03);
+    place(mesh(new THREE.SphereGeometry(0.068, 10, 8), fur), hat, 0.3, -0.1, -0.03);
   }
 
   // ---------- 後ろ髪（足もとまで届く長い髪。裾へ向かって広がり、赤い玉と金の星を飾る） ----------
   const hairBack = new THREE.Group(); hairBack.userData.keep = true; place(hairBack, head, 0, 0.2, -0.08);
   {
-    const L = 1.68;
     const hairTex = canvasTex(256, 512, (g, w, h) => {
-      const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, P.hairA); gr.addColorStop(0.25, P.hairA); gr.addColorStop(0.68, P.hairB); gr.addColorStop(1, P.hairB);
+      const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, P.hairA); gr.addColorStop(0.16, P.hairA); gr.addColorStop(0.56, P.hairB); gr.addColorStop(1, P.hairB);
       g.fillStyle = gr; g.fillRect(0, 0, w, h);
       let s = 3; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
       for (let i = 0; i < 60; i++) { const x = r() * w; g.strokeStyle = r() < 0.5 ? 'rgba(255,255,255,0.12)' : 'rgba(0,30,50,0.14)'; g.lineWidth = 1 + r() * 3; g.beginPath(); g.moveTo(x, 0); g.bezierCurveTo(x + (r() - 0.5) * 20, h * 0.3, x + (r() - 0.5) * 30, h * 0.7, x + (r() - 0.5) * 30, h); g.stroke(); }
     });
     hairTex.flipY = false;
     const backM = new THREE.MeshStandardMaterial({ map: hairTex, roughness: 0.6, metalness: 0, envMapIntensity: 0.4, side: THREE.DoubleSide }); flashMats.push(backM);
-    // 表面の点（u: -1〜1 で一周、v: 0〜1 で根元から毛先）。下へ行くほど太く、後ろへ流れ、毛先で閉じる
-    const surf = (uu, v, p, off = 0) => {
-      const a = uu * Math.PI, end = v > 0.82 ? Math.sqrt(Math.max(0, 1 - ((v - 0.82) / 0.18) ** 2)) : 1;
-      const rx = (0.16 + 0.5 * Math.pow(v, 0.8)) * (0.25 + 0.75 * end) + off, rz = (0.12 + 0.24 * v) * (0.25 + 0.75 * end) + off;
-      const wave = 0.03 * Math.sin(uu * 14) * v;
-      p.set(Math.sin(a) * (rx + wave) + 0.2 * Math.sin(v * 2.6) * v, -L * v + 0.05, -0.06 - 0.36 * Math.pow(v, 1.15) - Math.cos(a) * (rz + wave));
+    // 芯の曲線に沿って太さの変わる髪の塊。at(v, a, off) で表面の点を引ける（a = π/2 が背中側）
+    const sweep = (pts, rf, flat, segU = 28, segV = 30) => {
+      const curve = new THREE.CatmullRomCurve3(pts.map(([x, y, z]) => new THREE.Vector3(x, y, z)));
+      const at = (v, a, q, off = 0) => {
+        curve.getPoint(v, tC); curve.getTangent(v, tT); tN.crossVectors(tT, zA); if (tN.lengthSq() < 1e-6) tN.set(1, 0, 0); tN.normalize(); tB.crossVectors(tT, tN).normalize();
+        const r = rf(v) + off + 0.02 * Math.sin(a * 7) * Math.min(1, v * 3) * rf(v) / 0.4;
+        return q.copy(tC).addScaledVector(tN, Math.cos(a) * r).addScaledVector(tB, Math.sin(a) * r * flat);
+      };
+      return { geo: paramGeo(segU, segV, (u, v, q) => at(v, u * Math.PI * 2, q)), at };
     };
-    hairBack.add(new THREE.Mesh(paramGeo(44, 20, (u, v, p) => surf(u * 2 - 1, v, p)), backM));
-    const q = new THREE.Vector3();
-    // 裾と途中から外へ跳ねる細い房
+    // 本体: 頭から下りて大きく広がり、裾で片側へ流れて尖る
+    const main = sweep(
+      [[0, 0.04, -0.04], [-0.02, -0.42, -0.22], [-0.14, -0.86, -0.4], [-0.36, -1.24, -0.58], [-0.64, -1.5, -0.76], [-0.94, -1.6, -0.94], [-1.2, -1.52, -1.1], [-1.34, -1.36, -1.2]],
+      (v) => (v < 0.5 ? 0.17 + 0.45 * Math.pow(v / 0.5, 1.7) : 0.62 * Math.pow(Math.max(0, 1 - (v - 0.5) / 0.5), 1.1)) + 0.004, 0.5);
+    hairBack.add(new THREE.Mesh(main.geo, backM));
+    // 裾の反対側へ伸びる尖った房（裾全体が三日月形になる）
+    const under = sweep(
+      [[-0.2, -1.3, -0.52], [0.14, -1.56, -0.62], [0.56, -1.74, -0.74], [1.0, -1.84, -0.84], [1.3, -1.82, -0.9]],
+      (v) => 0.3 * Math.pow(Math.max(0, 1 - v), 1.0) * Math.min(1, 0.5 + v * 3) + 0.004, 0.5, 20, 24);
+    hairBack.add(new THREE.Mesh(under.geo, backM));
+    // 肩のあたりで外へ少し跳ねる短い房
     for (const [pts, r0] of [
-      [[[0.6, -1.3, -0.5], [0.84, -1.56, -0.54], [1.08, -1.66, -0.5]], 0.07],
-      [[[-0.3, -1.4, -0.52], [-0.5, -1.64, -0.56], [-0.7, -1.78, -0.52]], 0.065],
-      [[[0.56, -0.66, -0.34], [0.78, -0.86, -0.36], [0.98, -0.98, -0.32]], 0.05],
-      [[[-0.34, -0.72, -0.34], [-0.52, -0.9, -0.36], [-0.68, -1.02, -0.32]], 0.05],
-      [[[-0.3, -1.1, -0.44], [-0.5, -1.28, -0.46], [-0.66, -1.36, -0.42]], 0.045],
+      [[[-0.2, -0.4, -0.22], [-0.42, -0.62, -0.26], [-0.54, -0.82, -0.26]], 0.07],
+      [[[0.18, -0.36, -0.2], [0.36, -0.58, -0.24], [0.44, -0.78, -0.24]], 0.065],
     ]) hairBack.add(new THREE.Mesh(taperTube(pts, (v) => r0 * Math.pow(1 - v, 0.8) + 0.006, 0.45), backM));
-    for (const [uu, v] of [[-0.3, 0.32], [0.33, 0.48], [-0.1, 0.72], [0.3, 0.84]]) { surf(uu, v, q, 0.045); const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 10), ball); m.position.copy(q); hairBack.add(m); }
-    for (const [uu, v] of [[0.12, 0.22], [-0.16, 0.45], [0.08, 0.62], [-0.3, 0.86]]) { surf(uu, v, q, 0.03); const m = new THREE.Mesh(starGeo(0.06), starM); m.position.copy(q); m.lookAt(q.x * 3, q.y, q.z * 3 - 1); hairBack.add(m); }
+    const q = new THREE.Vector3();
+    for (const [v, a] of [[0.3, 2.6], [0.42, 0.5], [0.56, 1.9], [0.7, 1.0]]) { main.at(v, a, q, 0.035); const m = new THREE.Mesh(new THREE.SphereGeometry(0.072, 12, 10), ball); m.position.copy(q); hairBack.add(m); }
+    for (const [v, a] of [[0.2, 1.2], [0.36, 2.2], [0.5, 0.9], [0.66, 2.3]]) { main.at(v, a, q, 0.02); const m = new THREE.Mesh(starGeo(0.06), starM); m.position.copy(q); m.lookAt(q.x, q.y, q.z - 3); hairBack.add(m); }
   }
 
   // ---------- 腕（肩は肌、その先は水でできた半透明の腕） ----------
