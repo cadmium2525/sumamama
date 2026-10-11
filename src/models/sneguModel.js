@@ -119,16 +119,16 @@ export function buildSnegu(variant = 0) {
       const gr = g.createRadialGradient(0, 0, 0, 0, 0, 1); gr.addColorStop(0, 'rgba(240,120,120,0.16)'); gr.addColorStop(1, 'rgba(240,120,120,0)');
       g.save(); g.translate(X(s * 0.105), Y(0.105)); g.scale(0.045 * U, 0.025 * VS(0.105)); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 1, 0, 7); g.fill(); g.restore();
       // 目: 白目、青い瞳（上が濃く下が明るい）、黒い瞳孔、光
-      const ex = X(s * 0.074), ey = Y(0.152), vs = VS(0.152);
-      g.fillStyle = '#f8f8fa'; g.beginPath(); g.ellipse(ex, ey, 0.025 * U, 0.022 * vs, 0, 0, 7); g.fill();
-      const ig = g.createLinearGradient(0, ey - 0.021 * vs, 0, ey + 0.021 * vs); ig.addColorStop(0, '#102a60'); ig.addColorStop(0.45, P.eye); ig.addColorStop(1, P.eye2);
-      g.fillStyle = ig; g.beginPath(); g.ellipse(ex, ey + 0.001 * vs, 0.019 * U, 0.021 * vs, 0, 0, 7); g.fill();
-      g.fillStyle = '#081430'; g.beginPath(); g.ellipse(ex, ey, 0.008 * U, 0.009 * vs, 0, 0, 7); g.fill();
-      g.fillStyle = '#fff'; g.beginPath(); g.ellipse(ex - 0.008 * U, ey - 0.013 * vs, 0.006 * U, 0.007 * vs, 0, 0, 7); g.fill();
+      const ex = X(s * 0.075), ey = Y(0.148), vs = VS(0.148);
+      g.fillStyle = '#f8f8fa'; g.beginPath(); g.ellipse(ex, ey, 0.031 * U, 0.029 * vs, 0, 0, 7); g.fill();
+      const ig = g.createLinearGradient(0, ey - 0.028 * vs, 0, ey + 0.028 * vs); ig.addColorStop(0, '#102a60'); ig.addColorStop(0.45, P.eye); ig.addColorStop(1, P.eye2);
+      g.fillStyle = ig; g.beginPath(); g.ellipse(ex, ey + 0.001 * vs, 0.024 * U, 0.028 * vs, 0, 0, 7); g.fill();
+      g.fillStyle = '#081430'; g.beginPath(); g.ellipse(ex, ey, 0.01 * U, 0.012 * vs, 0, 0, 7); g.fill();
+      g.fillStyle = '#fff'; g.beginPath(); g.ellipse(ex - 0.01 * U, ey - 0.016 * vs, 0.008 * U, 0.009 * vs, 0, 0, 7); g.fill();
       // まつ毛（上は太く外へ跳ねる）、下まつ毛、眉
       g.strokeStyle = '#1a1c2a'; g.lineCap = 'round'; g.lineWidth = 0.006 * U;
-      g.beginPath(); g.moveTo(X(s * 0.048), Y(0.17)); g.quadraticCurveTo(X(s * 0.076), Y(0.182), X(s * 0.106), Y(0.164)); g.stroke();
-      g.strokeStyle = 'rgba(26,28,42,0.5)'; g.lineWidth = 0.003 * U; g.beginPath(); g.moveTo(X(s * 0.056), Y(0.13)); g.quadraticCurveTo(X(s * 0.074), Y(0.126), X(s * 0.094), Y(0.132)); g.stroke();
+      g.beginPath(); g.moveTo(X(s * 0.042), Y(0.172)); g.quadraticCurveTo(X(s * 0.076), Y(0.19), X(s * 0.112), Y(0.166)); g.stroke();
+      g.strokeStyle = 'rgba(26,28,42,0.5)'; g.lineWidth = 0.003 * U; g.beginPath(); g.moveTo(X(s * 0.052), Y(0.121)); g.quadraticCurveTo(X(s * 0.075), Y(0.115), X(s * 0.1), Y(0.123)); g.stroke();
       g.strokeStyle = P.hairB; g.lineWidth = 0.005 * U; g.beginPath(); g.moveTo(X(s * 0.035), Y(0.228)); g.quadraticCurveTo(X(s * 0.07), Y(0.24), X(s * 0.108), Y(0.226)); g.stroke();
     }
     // 小さな鼻と口
