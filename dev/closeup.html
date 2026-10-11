@@ -63,6 +63,13 @@ const SHOTS = {
     back: { ref: 20, crop: [0, 0, 1446, 2000], cx: 0, cy: 1.0, w: 2.05, yaw: Math.PI, anim: 'idle', pw: 520 },
     wide: { ref: 0, crop: [0, 0, 1000, 1000], cx: 0.5, cy: 1.4, w: 4.2, yaw: Math.PI / 2, anim: 'idle', pw: 420 },
   },
+  oboro: {
+    face: { ref: 24, crop: [700, 20, 660, 600], cx: 0, cy: 1.75, w: 0.8, yaw: 0, pose: { armR: [0, 0, -1.85], armL: [0, 0, 1.85], head: [0.1, 0, 0] } },
+    front: { ref: 24, crop: [0, 0, 2000, 1868], cx: 0, cy: 1.0, w: 2.45, yaw: 0, pose: { armR: [0, 0, -1.85], armL: [0, 0, 1.85], head: [0.1, 0, 0] }, pw: 640 },
+    side: { ref: 25, crop: [0, 0, 1580, 2000], cx: 0, cy: 1.05, w: 1.95, yaw: Math.PI / 2, anim: 'idle', pw: 480 },
+    back: { ref: 26, crop: [0, 0, 2000, 1832], cx: 0, cy: 1.0, w: 2.45, yaw: Math.PI, pose: { armR: [0, 0, -1.85], armL: [0, 0, 1.85], head: [0.1, 0, 0] }, pw: 640 },
+    wide: { ref: 0, crop: [0, 0, 1000, 1000], cx: 0.5, cy: 1.3, w: 4.4, yaw: Math.PI / 2, anim: 'idle', pw: 420 },
+  },
 };
 
 const q = new URLSearchParams(location.search);
@@ -96,6 +103,7 @@ async function draw(sname) {
   let pose = q.get('pose') ? def.anims[q.get('pose')](0) : (shot.anim ? def.anims[shot.anim](0) : (shot.pose || {}));
   if (mv) { const a = def.moves[mv.m].anim; pose = track(typeof a === 'function' ? a({}) : a, mv.f); }
   if (m.setSword) m.setSword(!!mv && /smash/.test(mv.m));
+  if (m.setDrill) m.setDrill(!!mv && /fsmash|dashattack|uair|dair/.test(mv.m));
   if (m.setWeapon) m.setWeapon(mv ? (mv.m === 'neutralb' ? 'bow' : /tilt|smash|air/.test(mv.m) && !/dtilt|usmash|dsmash|nair|bair|dair/.test(mv.m) ? 'blade' : null) : (q.get('wp') || null));
   // ov=JSON で姿勢の一部を上書きして試せる
   const ov = window.ov || (q.get('ov') ? JSON.parse(q.get('ov')) : null);

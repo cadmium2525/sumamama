@@ -73,6 +73,21 @@ export function buildHamu(variant = 0) {
     p.set(Math.sin(phi) * r, y, c * r * (c > 0 ? 0.88 : 0.8) + bulge * (r / 0.45));
   });
   place(mesh(bodyGeo, texMat(bodyTex)), torso, 0, 0, 0);
+  // 毛並み: 輪郭がふさふさに見えるよう、体じゅうに下向きの毛の房を生やす（腹の白い部分は白い房）
+  {
+    let sd = 21; const rn = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    const tanM = std(P.tan);
+    for (let i = 0; i < 330; i++) {
+      const phi = (rn() * 2 - 1) * Math.PI, y = -0.13 + rn() * 0.86, c = Math.cos(phi), r = B.r(y);
+      const front = Math.abs(phi) < 1.0 + (y < 0.2 ? 0.25 : 0);
+      if (!front && y > 0.08 && y < 0.17) continue; // 色の境目は避ける
+      if (front) continue;
+      if (Math.abs(phi) > 2.75 && y > 0.28 && y < 0.68) continue; // 背中の模様
+      const mat = front ? (y <= 0.0 ? tanM : cream) : y < 0.1 ? dark : fur;
+      const z = c * r * (c > 0 ? 0.88 : 0.8) + Math.max(0, c) * 0.05 * Math.exp(-((y - 0.1) ** 2) / 0.07) * (r / 0.45);
+      tuft(torso, mat, Math.sin(phi) * r * 0.96, y, z * 0.96, Math.sin(phi) * 0.4, -1, c * 0.4, 0.045 + rn() * 0.025, 0.024 + rn() * 0.012, 0.6);
+    }
+  }
   place(mesh(new THREE.SphereGeometry(0.3, 14, 10), dark), hips, 0, -0.04, -0.02, 0, 0, 0, [1.3, 0.55, 1.0]);
   // 首元と肩の毛
   for (const [x, rz] of [[-0.05, 0.5], [0.04, -0.4], [0, 0]]) tuft(torso, cream, x, 0.75, 0.17, rz, -1, 0.5, 0.09, 0.035);
@@ -131,6 +146,18 @@ export function buildHamu(variant = 0) {
   });
   const headGeo = paramGeo(40, 22, (u, v, p) => { const phi = (u - 0.5) * Math.PI * 2, y = H.yOf(v), r = H.r(y); p.set(Math.sin(phi) * r, y, Math.cos(phi) * r * HZ); });
   place(mesh(headGeo, texMat(faceTex)), head, 0, 0, 0);
+  // 頭の毛並み（顔の正面は避ける。口元の白い帯のあたりは白い房）
+  {
+    let sd = 33; const rn = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 200; i++) {
+      const phi = (rn() * 2 - 1) * Math.PI, y = 0.03 + rn() * 0.36, c = Math.cos(phi), r = H.r(y);
+      if (Math.abs(phi) < 1.05 && y < 0.3) continue;
+      if (Math.abs(phi) < 0.5) continue;
+      if (y > 0.1 && y < 0.17 && Math.abs(phi) < 2.4) continue; // 色の境目は避ける
+      const mat = y <= 0.1 && Math.abs(phi) < 2.3 ? cream : fur;
+      tuft(head, mat, Math.sin(phi) * r * 0.96, y, c * r * HZ * 0.96, Math.sin(phi) * 0.6, -1 + (y > 0.3 ? 1.3 : 0), c * 0.6, 0.04 + rn() * 0.025, 0.022 + rn() * 0.01, 0.6);
+    }
+  }
   // 口吻、小さな逆三角の鼻、口と前歯
   place(mesh(new THREE.SphereGeometry(1, 12, 10), cream), head, 0, 0.1, 0.2, 0, 0, 0, [0.085, 0.052, 0.055]);
   place(mesh(new THREE.ConeGeometry(0.02, 0.022, 3), basic(P.claw)), head, 0, 0.122, 0.25, Math.PI, 0, 0, [1, 1, 0.5]);
@@ -187,7 +214,9 @@ export function buildHamu(variant = 0) {
     place(mesh(taperCapsule(0.33, 0.1, 0.105, 12), fur), arm, 0, 0, 0);
     // 腕の内側の白い毛
     place(mesh(new THREE.SphereGeometry(1, 8, 8), cream), arm, s * -0.055, -0.19, 0, 0, 0, 0, [0.06, 0.17, 0.085]);
+    for (let k = 0; k < 7; k++) { const a = k * 2.1 + 0.4; tuft(arm, fur, Math.sin(a) * 0.09, -0.06 - k * 0.035, Math.cos(a) * 0.09, Math.sin(a) * 0.4, -1, Math.cos(a) * 0.4, 0.045, 0.022, 0.6); }
     const fore = joint(R ? 'foreR' : 'foreL', arm, 0, -0.33, 0); j[R ? 'foreR' : 'foreL'] = fore;
+    for (let k = 0; k < 7; k++) { const a = k * 2.3 + 1.1; tuft(fore, fur, Math.sin(a) * 0.105, -0.03 - k * 0.028, Math.cos(a) * 0.105, Math.sin(a) * 0.4, -1, Math.cos(a) * 0.4, 0.045, 0.024, 0.6); }
     place(mesh(new THREE.SphereGeometry(0.108, 10, 8), fur), fore, 0, 0, 0);
     place(mesh(taperCapsule(0.23, 0.11, 0.135, 12), fur), fore, 0, 0, 0);
     const hand = new THREE.Group(); hand.userData.joint = true; place(hand, fore, 0, -0.28, 0); hands[s] = hand;
@@ -205,7 +234,9 @@ export function buildHamu(variant = 0) {
     const leg = joint(R ? 'legR' : 'legL', hips, s * 0.27, -0.04, 0); j[R ? 'legR' : 'legL'] = leg;
     place(mesh(new THREE.SphereGeometry(0.25, 14, 12), dark), leg, 0, -0.03, 0, 0, 0, 0, [1, 1.15, 1.15]);
     place(mesh(taperCapsule(0.2, 0.22, 0.19, 12), dark), leg, 0, 0, 0);
+    for (let k = 0; k < 12; k++) { const a = k * 1.9 + 0.3, y = 0.05 - (k % 4) * 0.07; tuft(leg, dark, Math.sin(a) * 0.215, y, Math.cos(a) * 0.235, Math.sin(a) * 0.4, -1, Math.cos(a) * 0.4, 0.055, 0.03, 0.6); }
     const shin = joint(R ? 'shinR' : 'shinL', leg, 0, -0.2, 0); j[R ? 'shinR' : 'shinL'] = shin;
+    for (let k = 0; k < 7; k++) { const a = k * 0.9; tuft(shin, dark, Math.sin(a) * 0.15, -0.1, Math.cos(a) * 0.15, Math.sin(a) * 0.5, -1, Math.cos(a) * 0.5, 0.07, 0.04, 0.7); }
     place(mesh(taperCapsule(0.15, 0.19, 0.165, 12), dark), shin, 0, 0, 0);
     const foot = new THREE.Group(); place(foot, shin, 0, -0.22, 0.02);
     place(mesh(new THREE.SphereGeometry(1, 12, 8), fur), foot, 0, 0, 0.06, 0, 0, 0, [0.185, 0.09, 0.2]);

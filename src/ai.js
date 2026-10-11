@@ -290,6 +290,13 @@ export class CpuController {
       if (op.state !== 'dizzy' && op.grounded && adx > 1.6 && adx < 4.4 && chance(0.4)) { this.sx = me.facing === dir ? 0 : dir * 0.3; this.sy = 0; this.press('special'); this.busy = 40; return; }
       if (adx > 2.2 && adx < 4 && chance(0.06)) { this.sx = dir; this.sy = 0; this.press('special'); this.busy = 40; return; }
     }
+    // オボロゲソウ: 離れたら種ガンを連射、中距離は根のばし、近くの地上の相手には花粉。ふらふらの相手にはスマッシュ
+    if (me.def.id === 'oboro' && me.grounded && Math.abs(dy) < 1.2) {
+      if (op.state === 'dizzy' && adx < 1.6) { this.sx = dir; this.sy = 0; this.press('smash', randi(8, 22)); this.busy = 45; return; }
+      if (adx > 3.6 && adx < 10 && chance(0.16)) { this.sx = me.facing === dir ? 0 : dir * 0.3; this.sy = 0; this.press('special', randi(12, 60)); this.busy = 40; return; }
+      if (op.grounded && adx > 1.6 && adx < 3.5 && chance(0.3)) { this.sx = dir; this.sy = 0; this.press('special'); this.busy = 50; return; }
+      if (op.grounded && op.state !== 'dizzy' && adx < 1.6 && chance(0.16)) { this.sx = 0; this.sy = -1; this.press('special'); this.busy = 45; this.after(() => { this.sy = 0; }, 3); return; }
+    }
     // スネグーラチカ: 離れた相手には氷の矢
     if (me.def.id === 'snegu' && adx > 3.6 && Math.abs(adx) < 9 && Math.abs(dy) < 1.2 && chance(0.15)) {
       this.sx = me.facing === dir ? 0 : dir * 0.3; this.sy = 0; this.press('special', chance(0.5) ? randi(10, 40) : 1); this.busy = 30;

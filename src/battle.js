@@ -66,6 +66,16 @@ class Projectile {
       battle.scene.add(g);
       return;
     }
+    if (o.kind === 'seed') {
+      // 種（小さな粒。進む向きに細長い）
+      const m = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6), new THREE.MeshBasicMaterial({ color: o.color }));
+      m.scale.set(o.r * 1.5, o.r * 0.8, o.r * 0.8);
+      m.position.set(o.x, o.y, 0.25);
+      m.rotation.z = Math.atan2(o.vy, o.vx);
+      this.mesh = m;
+      battle.scene.add(m);
+      return;
+    }
     if (o.kind === 'gas') {
       // ガスの雲（ゆっくり広がりながら漂う。当たるとふらふらになる）
       const g = new THREE.Group();
@@ -118,6 +128,10 @@ class Projectile {
       if (this.life <= 0 || insideSolid(this.x, this.y) || Math.abs(this.x) > 30) this.kill(true);
       return;
     }
+    if (this.kind === 'seed') {
+      if (this.life <= 0 || insideSolid(this.x, this.y) || Math.abs(this.x) > 30) this.kill(false);
+      return;
+    }
     if (this.kind === 'gas') {
       this.vx *= this.drag || 0.965; this.vy *= 0.94;
       this.r = Math.min(this.rMax || 0.8, this.r + 0.012);
@@ -168,7 +182,7 @@ class Projectile {
       }
       return;
     }
-    if (this.kind === 'arrow' || this.kind === 'ice') return;
+    if (this.kind === 'arrow' || this.kind === 'ice' || this.kind === 'seed') return;
     if (this.shell) this.shell.scale.setScalar(this.r * (1 + Math.sin(this.age * 0.6) * 0.08));
     else this.mesh.scale.set(1, 1 + Math.sin(this.age * 0.5) * 0.05, 1);
   }
